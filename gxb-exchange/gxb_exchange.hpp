@@ -19,6 +19,10 @@ class gxbexchange : public contract
     gxbexchange(uint64_t account_id)
         : contract(account_id)
         , accounts(_self, _self)
+        , buyorders(_self, _self)
+        , sellorders(_self, _self)
+        , profits(_self, _self)
+        , incomes(_self, _self)
     {
     }
 
@@ -30,14 +34,11 @@ class gxbexchange : public contract
     void withdraw(std::string to_account, contract_asset amount);
 
     //@abi action
-    void pendingorder(uint8_t type, contract_asset quantity, uint64_t price);
+    void pendingorder(uint8_t type, contract_asset quantity, int64_t price);
 
     //@abi action
-    void cancelorder(std::string to_account, contract_asset amount);
+    void cancelorder(uint8_t type, uint64_t id);
 
-  private:
-
-    // bool is_in_order(uint8_t type, uint64_t user);
 
     //@abi table account i64
     struct account {
@@ -52,10 +53,29 @@ class gxbexchange : public contract
         GRAPHENE_SERIALIZE(account, (owner)(balances))
     };
 
+    //@abi table profit i64
+    struct profit {
+        uint64_t id;
+        contract_asset profit_asset;
+        uint64_t profit_time;
+
+        uint64_t primary_key() const { return id; }
+        GRAPHENE_SERIALIZE(profit, (id)(profit_asset)(profit_time))
+    };
+
+    //@abi table income i64
+    struct income {
+        uint64_t asset_id;
+        uint64_t amount;
+
+        uint64_t primary_key() const { return asset_id; }
+        GRAPHENE_SERIALIZE(income, (asset_id)(amount))
+    };
+
     //@abi table buyorder i64
     struct buyorder {
         uint64_t id;
-        uint64_t price;
+        int64_t price;
         contract_asset quantity;
         uint64_t buyer;
         int64_t  order_time;
@@ -69,7 +89,7 @@ class gxbexchange : public contract
     //@abi table sellorder i64
     struct sellorder {
         uint64_t id;
-        uint64_t price;
+        int64_t price;
         contract_asset quantity;
         uint64_t seller;
         int64_t  order_time;
@@ -80,25 +100,51 @@ class gxbexchange : public contract
         GRAPHENE_SERIALIZE(sellorder, (id)(price)(quantity)(seller)(order_time))
     };
 
-    
+    // bool buyoredercomp(const buyorder &a, const buyorder &b);
+    // bool selloredercomp(const sellorder &a, const sellorder &b);
+    void add_balances(uint64_t user, contract_asset quantity);
+    void sub_balances(uint64_t user, contract_asset quantity);
+    void add_balances_lock(uint64_t user, contract_asset quantity);
+    void sub_balances_lock(uint64_t user, contract_asset quantity);
+    void exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity); 
+    void transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity);
+    void balance_lock(uint64_t user, contract_asset quantity);
+    void unlock_lock_balance(uint64_t user, contract_asset quantity);
+    void update_sell_order(uint64_t id, contract_asset quantity);
+    void update_buy_order(uint64_t id, contract_asset quantity);
+    void insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price);
+    void insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price);
+    void insert_profit(contract_asset profit);
+    void add_income(contract_asset profit);
+    void sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller);
+    void buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer);
+    void cancel_sell_order_fun(uint64_t id, uint64_t seller);
+    void cancel_buy_order_fun(uint64_t id, uint64_t buyer);
 
+  private:
+    
     typedef graphene::multi_index<N(account), account> account_index;
 
     typedef graphene::multi_index<N(buyorder), buyorder,
                         indexed_by<N(price), const_mem_fun<buyorder, uint64_t, &buyorder::get_price>>,
-                        indexed_by<N(sender), const_mem_fun<buyorder, uint64_t, &buyorder::buyer>>,
+                        indexed_by<N(sender), const_mem_fun<buyorder, uint64_t, &buyorder::get_sender>>,
                         indexed_by<N(asset), const_mem_fun<buyorder, uint64_t, &buyorder::get_asset>>
                         > buyorder_index;
 
     typedef graphene::multi_index<N(sellorder), sellorder,
                         indexed_by<N(price), const_mem_fun<sellorder, uint64_t, &sellorder::get_price>>,
-                        indexed_by<N(sender), const_mem_fun<sellorder, uint64_t, &sellorder::seller>>,
+                        indexed_by<N(sender), const_mem_fun<sellorder, uint64_t, &sellorder::get_sender>>,
                         indexed_by<N(asset), const_mem_fun<sellorder, uint64_t, &sellorder::get_asset>>
     > sellorder_index;
+
+    typedef graphene::multi_index<N(profit), profit> profit_index;
+    typedef graphene::multi_index<N(income), income> income_index;
 
     account_index accounts;
     buyorder_index buyorders;
     sellorder_index sellorders;
+    profit_index profits;
+    income_index incomes;
     
 };
 

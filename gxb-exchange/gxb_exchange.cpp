@@ -1,4 +1,4 @@
-#include "gxb-exchange-help.cpp"
+#include "gxb_exchange_help.cpp"
 
 using namespace graphene;
 
@@ -71,7 +71,7 @@ void gxbexchange::withdraw(std::string to_account, contract_asset amount)
  * 其次 如果是卖单， 就从买单列表中查询相同资产得买单，找出所有价格合适得订单，从中匹配交易，如果有剩余则存入卖单列表，如没有则结束， 买单跟卖单处理过程类似
  * 
  * */
-void gxbexchange::pendingorder(uint8_t type, contract_asset quantity, uint64_t price) 
+void gxbexchange::pendingorder(uint8_t type, contract_asset quantity, int64_t price) 
 {
     graphene_assert(quantity.amount > 0, "挂单金额不能小于或等于零");
     graphene_assert(price > 0, "挂单价格不能小于或等于零");
@@ -84,6 +84,14 @@ void gxbexchange::pendingorder(uint8_t type, contract_asset quantity, uint64_t p
 
 }
 
-void gxbexchange::cancelorder(std::string to_account, contract_asset amount);
+void gxbexchange::cancelorder(uint8_t type, uint64_t id) {
+
+    uint64_t sender = get_trx_sender();
+    if (sell_order_type == type) {
+        cancel_sell_order_fun(id, sender); 
+    } else if (buy_order_type == type) {
+        cancel_buy_order_fun(id, sender);
+    }
+}
 
 GRAPHENE_ABI(gxbexchange, (deposit)(withdraw)(pendingorder)(cancelorder))
