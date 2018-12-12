@@ -12,6 +12,7 @@ using namespace graphene;
 const uint8_t buy_order_type = 1; //  买单类型
 const uint8_t sell_order_type = 2; //  买单类型
 const uint64_t platform_core_asset_id = 16; // 平台核心资产id WKYCOIN
+const uint64_t profit_account_id = 12; //收益账户id 只有这个人才可以获取平台的收益
 
 class gxcexchangey : public contract
 {
@@ -41,6 +42,9 @@ class gxcexchangey : public contract
 
     //@abi action
     void cancelorder(uint8_t type, uint64_t id);
+
+    //@abi action
+    void fetchprofit(std::string to_account, contract_asset amount);
 
     // 账户记录
     //@abi table account i64
@@ -154,6 +158,8 @@ class gxcexchangey : public contract
     void sub_balances(uint64_t user, contract_asset quantity);
     void add_balances_lock(uint64_t user, contract_asset quantity);
     void sub_balances_lock(uint64_t user, contract_asset quantity);
+    void add_income(contract_asset profit);
+    void sub_income(contract_asset profit);
     void exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity); 
     void transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity);
     void balance_lock(uint64_t user, contract_asset quantity);
@@ -166,7 +172,6 @@ class gxcexchangey : public contract
     void insert_dealorder(int64_t price, contract_asset quantity);
     void insert_depositlog(uint64_t buyer, contract_asset amount);
     void insert_withdrawlog(uint64_t buyer, contract_asset amount);
-    void add_income(contract_asset profit);
     void sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller);
     void buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer);
     void cancel_sell_order_fun(uint64_t id, uint64_t seller);

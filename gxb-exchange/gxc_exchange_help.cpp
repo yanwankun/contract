@@ -172,6 +172,35 @@ void gxcexchangey::unlock_lock_balance(uint64_t user, contract_asset quantity) {
     sub_balances_lock(user, quantity);
 }
 
+
+void gxcexchangey::add_income(contract_asset profit) {
+    graphene_assert(profit.amount > 0, "资金操作不能为负数");
+    auto income_asset = incomes.find(profit.asset_id);
+    if (income_asset == incomes.end()) {
+        incomes.emplace(0, [&](auto &o) {
+            o.asset_id = profit.asset_id;
+            o.amount = profit.amount;
+        });
+    } else {
+        incomes.modify(income_asset, 0, [&](auto &o) {
+            // todo 判断溢出问题
+            o.amount += profit.amount;
+        });
+    }
+}
+
+void gxcexchangey::sub_income(contract_asset profit) {
+    graphene_assert(profit.amount > 0, "资金操作不能为负数");
+    auto income_asset = incomes.find(profit.asset_id);
+    graphene_assert(income_asset != incomes.end(), "当前收益没有对应得资产");
+    graphene_assert(income_asset->amount >= profit.amount, "当前收益不足");
+    
+    incomes.modify(income_asset, 0, [&](auto &o) {
+        o.amount -= profit.amount;
+    });
+    
+} 
+
 void gxcexchangey::update_sell_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
@@ -268,21 +297,6 @@ void gxcexchangey::insert_withdrawlog(uint64_t user, contract_asset amount) {
     });
 }
 
-void gxcexchangey::add_income(contract_asset profit) {
-    graphene_assert(profit.amount > 0, "资金操作不能为负数");
-    auto income_asset = incomes.find(profit.asset_id);
-    if (income_asset == incomes.end()) {
-        incomes.emplace(0, [&](auto &o) {
-            o.asset_id = profit.asset_id;
-            o.amount = profit.amount;
-        });
-    } else {
-        incomes.modify(income_asset, 0, [&](auto &o) {
-            // todo 判断溢出问题
-            o.amount += profit.amount;
-        });
-    }
-}
 
 // 当收到卖单请求时得处理方法
 void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller) {

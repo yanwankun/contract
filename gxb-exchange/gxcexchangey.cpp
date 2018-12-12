@@ -17,12 +17,12 @@ void gxcexchangey::deposit()
 void gxcexchangey::withdraw(std::string to_account, contract_asset amount)
 {
     int64_t account_id = get_account_id(to_account.c_str(), to_account.size());
-    graphene_assert(account_id >= 0, "invalid account_name to_account");
-    graphene_assert(amount.amount > 0, "invalid amount");
+    graphene_assert(account_id >= 0, "目的账户不存在");
+    graphene_assert(amount.amount > 0, "体现资产数目不能为小于或者等于零");
 
     uint64_t owner = get_trx_sender();
     auto it = accounts.find(owner);
-    graphene_assert(it != accounts.end(), "owner has no asset");
+    graphene_assert(it != accounts.end(), "账户没有该资产");
 
     sub_balances(owner, amount);
     withdraw_asset(_self, account_id, amount.asset_id, amount.amount);
@@ -62,4 +62,15 @@ void gxcexchangey::cancelorder(uint8_t type, uint64_t id) {
     }
 }
 
-GRAPHENE_ABI(gxcexchangey, (deposit)(withdraw)(pendingorder)(cancelorder))
+void gxcexchangey::fetchprofit(std::string to_account, contract_asset amount) {
+    uint64_t sender = get_trx_sender();
+    graphene_assert(sender == profit_account_id, "越权操作");
+
+    int64_t account_id = get_account_id(to_account.c_str(), to_account.size());
+    graphene_assert(account_id >= 0, "目的账户不存在");
+
+    sub_income(amount);
+    withdraw_asset(_self, account_id, amount.asset_id, amount.amount);
+}
+
+GRAPHENE_ABI(gxcexchangey, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit))
