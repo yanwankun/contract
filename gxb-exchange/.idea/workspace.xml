@@ -22,8 +22,8 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gxcexchange.cpp" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/gxcexchange.cpp">
+      <file leaf-file-name="gxcexchangey.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/gxcexchangey.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="95">
               <caret line="5" column="1" lean-forward="true" selection-start-line="5" selection-start-column="1" selection-end-line="5" selection-end-column="1" />
@@ -36,7 +36,7 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>gxcexchange</find>
+      <find>gxcexchangey</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -47,7 +47,7 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/gxcexchange.cpp" />
+        <option value="$PROJECT_DIR$/gxcexchangey.cpp" />
       </list>
     </option>
   </component>
@@ -272,7 +272,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gxcexchange.cpp">
+    <entry file="file://$PROJECT_DIR$/gxcexchangey.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="95">
           <caret line="5" column="1" lean-forward="true" selection-start-line="5" selection-start-column="1" selection-end-line="5" selection-end-column="1" />

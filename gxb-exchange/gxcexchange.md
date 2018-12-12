@@ -4,18 +4,18 @@
 ## 合约提供了 存钱（deposite） 取现（withdraw） 挂单（pendingorder） 和取消挂单得功能（cancelorder）
 
 ## 编译合约
-gxx -g gxcexchange.abi gxcexchange.cpp
-gxx -o gxcexchange.wast gxcexchange.cpp
+gxx -g gxcexchangey.abi gxcexchangey.cpp
+gxx -o gxcexchangey.wast gxcexchangey.cpp
 
 
-## 部署合约 合约名为 gxcexchange
-deploy_contract gxcexchange yanwankun-test 0 0 ./contract/gxcexchange GXC true
+## 部署合约 合约名为 gxcexchangey
+deploy_contract gxcexchangey yanwankun-test 0 0 ./contract/gxcexchangey GXC true
 
 ## 合约调用
 
 ### 存钱
-unlocked >>> call_contract yanwankun-test gxcexchange {"amount":200,"asset_id":1.3.16} deposit "{}" GXS true
-call_contract yanwankun-test gxcexchange {"amount":200,"asset_id":1.3.16} deposit "{}" GXS true
+unlocked >>> call_contract yanwankun-test gxcexchangey {"amount":2000000,"asset_id":1.3.16} deposit "{}" GXS true
+call_contract yanwankun-test gxcexchangey {"amount":200,"asset_id":1.3.16} deposit "{}" GXS true
 {
   "ref_block_num": 39850,
   "ref_block_prefix": 865838005,
@@ -44,11 +44,11 @@ call_contract yanwankun-test gxcexchange {"amount":200,"asset_id":1.3.16} deposi
   ]
 }
 
-call_contract yanwankun-test gxcexchange {"amount":200,"asset_id":1.3.1} deposit "{}" GXS true
+call_contract yanwankun-test gxcexchangey {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
 
 ## 取钱
-unlocked >>> call_contract yanwankun-test gxcexchange null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
-call_contract yanwankun-test gxcexchange null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
+unlocked >>> call_contract yanwankun-test gxcexchangey null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
+call_contract yanwankun-test gxcexchangey null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
 {
   "ref_block_num": 39919,
   "ref_block_prefix": 2878906590,
@@ -75,20 +75,35 @@ call_contract yanwankun-test gxcexchange null withdraw "{\"to_account\":\"yanwan
 
 
 ### 挂单 挂一个 以单价 2WKYCOIN/1GXC 购买5个GXC 的买单
-call_contract yanwankun-test gxcexchange null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":5}, \"price\": 2}" GXC true
+call_contract yanwankun-test gxcexchangey null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":5}, \"price\": 5}" GXC true
 
-call_contract yanwankun-test gxcexchange null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":5}, \"price\": 5}" GXC true
+call_contract yanwankun-test gxcexchangey null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":4}, \"price\": 4}" GXC true
 
+call_contract yanwankun-test gxcexchangey null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
 
+### 撤销订单
+
+call_contract yanwankun-test gxcexchangey null cancelorder "{\"type\":1, \"id\":5}" GXC true
 
 ### 列出合约得所有存储表
-get_contract_tables gxcexchange
+get_contract_tables gxcexchangey
+get_contract_tables gxcexchangey
 [
   "account",
   "profit",
   "income",
   "buyorder",
   "sellorder",
-  "dealorder"
+  "dealorder",
+  "depositlog",
+  "withdrawlog"
 ]
+
+
+get_table_objects gxcexchangey buyorder 0 10 10
+get_table_objects gxcexchangey sellorder 0 10 10
+get_table_objects gxcexchangey profit 0 10 10
+get_table_objects gxcexchangey dealorder 0 10 10
+get_table_objects gxcexchangey depositlog 0 10 10
+get_table_objects gxcexchangey income 15 19 10
 

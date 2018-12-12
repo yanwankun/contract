@@ -13,10 +13,10 @@ const uint8_t buy_order_type = 1; //  买单类型
 const uint8_t sell_order_type = 2; //  买单类型
 const uint64_t platform_core_asset_id = 16; // 平台核心资产id WKYCOIN
 
-class gxcexchange : public contract
+class gxcexchangey : public contract
 {
   public:
-    gxcexchange(uint64_t account_id)
+    gxcexchangey(uint64_t account_id)
         : contract(account_id)
         , accounts(_self, _self)
         , buyorders(_self, _self)
