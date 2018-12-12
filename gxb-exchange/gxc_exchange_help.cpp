@@ -1,10 +1,10 @@
-#include "gxb_exchange.hpp"
+#include "gxcexchange.hpp"
 
 using namespace graphene;
 
 
 // 把出价高和创建时间早得放在前面
-bool buyoredercomp(const gxbexchange::buyorder &a, const gxbexchange::buyorder &b){
+bool buyoredercomp(const gxcexchange::buyorder &a, const gxcexchange::buyorder &b){
     if (a.price > b.price) {
         return true;
     } else if (a.price < b.price) {
@@ -17,7 +17,7 @@ bool buyoredercomp(const gxbexchange::buyorder &a, const gxbexchange::buyorder &
 }
 
 // 把售价低和创建时间早得放在前面
-bool selloredercomp(const gxbexchange::sellorder &a, const gxbexchange::sellorder &b){
+bool selloredercomp(const gxcexchange::sellorder &a, const gxcexchange::sellorder &b){
     if (a.price < b.price) {
         return true;
     } else if (a.price > b.price) {
@@ -30,7 +30,7 @@ bool selloredercomp(const gxbexchange::sellorder &a, const gxbexchange::sellorde
 }
 
 // 增加余额
-void gxbexchange::add_balances(uint64_t user, contract_asset quantity){
+void gxcexchange::add_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     if (it_user == accounts.end()) {
@@ -39,67 +39,130 @@ void gxbexchange::add_balances(uint64_t user, contract_asset quantity){
             o.balances.emplace_back(quantity);
         });
     } else {
-        uint16_t asset_index = std::distance(it_user->balances.begin(),
-                                                find_if(it_user->balances.begin(), it_user->balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
-        if (asset_index < it_user->balances.size()) {
-            accounts.modify(it_user, 0, [&](auto &o) { o.balances[asset_index] += quantity; });
-        } else {
-            accounts.modify(it_user, 0, [&](auto &o) { o.balances.emplace_back(quantity); });
+        int asset_index = 0;
+        bool add = false;
+        for (auto asset_it = it_user->balances.begin(); asset_it != it_user->balances.end(); ++asset_it) {
+            if ((quantity.asset_id) == asset_it->asset_id) {
+                accounts.modify(it_user, 0, [&](auto &o) {
+                    o.balances[asset_index] += quantity;
+                });
+                add = true;
+                break;
+            }
+            asset_index++;
+        }
+        if (!add) {
+            accounts.modify(it_user, 0, [&](auto &o) {
+                o.balances.emplace_back(quantity);
+            });
         }
     }
 }
 
 // 减少余额
-void gxbexchange::sub_balances(uint64_t user, contract_asset quantity){
+void gxcexchange::sub_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "账户记录不存在");
-    
-    uint16_t asset_index = std::distance(it_user->balances.begin(),
-                                                find_if(it_user->balances.begin(), it_user->balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
-    
-    graphene_assert(asset_index < it_user->balances.size(), "账户没有相关资产，不能进行操作");
-    graphene_assert(it_user->balances[asset_index].amount >= quantity.amount, "账户相关资产余额不足");
 
-    accounts.modify(it_user, 0, [&](auto &o) { o.balances[asset_index] -= quantity; });
+    int asset_index = 0;
+    for (auto asset_it = it_user->balances.begin(); asset_it != it_user->balances.end(); ++asset_it) {
+        if ((quantity.asset_id) == asset_it->asset_id) {
+            graphene_assert(asset_it->amount >= quantity.amount, "账户相关资产余额不足");
+            accounts.modify(it_user, 0, [&](auto &o) {
+                o.balances[asset_index] -= quantity;
+            });
+
+            break;
+        }
+        asset_index++;
+    }
+    
+    // uint16_t asset_index = std::distance(it_user->balances.begin(),
+    //                                             find_if(it_user->balances.begin(), it_user->balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
+    
+    // graphene_assert(asset_index < it_user->balances.size(), "账户没有相关资产，不能进行操作");
+    // graphene_assert(it_user->balances[asset_index].amount >= quantity.amount, "账户相关资产余额不足");
+
+    // accounts.modify(it_user, 0, [&](auto &o) { o.balances[asset_index] -= quantity; });
+
+
+    // uint16_t asset_index = std::distance(it->balances.begin(),
+    //                                              find_if(it->balances.begin(), it->balances.end(), [&](const auto &a) { return a.asset_id == asset_id; }));
+    // if (asset_index < it->balances.size()) {
+    //     accounts.modify(it, 0, [&](auto &o) { o.balances[asset_index] += amount; });
+    // } else {
+    //     accounts.modify(it, 0, [&](auto &o) { o.balances.emplace_back(amount); });
+    // } 
     
 }
 
 // 增加余额
-void gxbexchange::add_balances_lock(uint64_t user, contract_asset quantity){
+void gxcexchange::add_balances_lock(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
-    
-    uint16_t asset_index = std::distance(it_user->lock_balances.begin(),
-                                            find_if(it_user->lock_balances.begin(), it_user->lock_balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
-    if (asset_index < it_user->balances.size()) {
-        accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances[asset_index] += quantity; });
-    } else {
-        accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances.emplace_back(quantity); });
+
+    int asset_index = 0;
+    bool add = false;
+    for (auto asset_it = it_user->lock_balances.begin(); asset_it != it_user->lock_balances.end(); ++asset_it) {
+        if ((quantity.asset_id) == asset_it->asset_id) {
+            accounts.modify(it_user, 0, [&](auto &o) {
+                o.lock_balances[asset_index] += quantity;
+            });
+            add = true;
+            break;
+        }
+        asset_index++;
     }
+    if (!add) {
+        accounts.modify(it_user, 0, [&](auto &o) {
+            o.lock_balances.emplace_back(quantity);
+        });
+    }
+    
+    // uint16_t asset_index = std::distance(it_user->lock_balances.begin(),
+    //                                         find_if(it_user->lock_balances.begin(), it_user->lock_balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
+    // if (asset_index < it_user->balances.size()) {
+    //     accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances[asset_index] += quantity; });
+    // } else {
+    //     accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances.emplace_back(quantity); });
+    // }
     
 }
 
 // 减少余额
-void gxbexchange::sub_balances_lock(uint64_t user, contract_asset quantity){
+void gxcexchange::sub_balances_lock(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "账户记录不存在");
-    
-    uint16_t asset_index = std::distance(it_user->lock_balances.begin(),
-                                                find_if(it_user->lock_balances.begin(), it_user->lock_balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
-    
-    graphene_assert(asset_index < it_user->lock_balances.size(), "账户没有相关资产，不能进行操作");
-    graphene_assert(it_user->lock_balances[asset_index].amount >= quantity.amount, "账户相关资产余额不足");
 
-    accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances[asset_index] -= quantity; });
+    int asset_index = 0;
+    for (auto asset_it = it_user->lock_balances.begin(); asset_it != it_user->lock_balances.end(); ++asset_it) {
+        if ((quantity.asset_id) == asset_it->asset_id) {
+            graphene_assert(asset_it->amount >= quantity.amount, "账户相关资产余额不足");
+            accounts.modify(it_user, 0, [&](auto &o) {
+                o.lock_balances[asset_index] -= quantity;
+            });
+
+            break;
+        }
+        asset_index++;
+    }
+    
+    // uint16_t asset_index = std::distance(it_user->lock_balances.begin(),
+    //                                             find_if(it_user->lock_balances.begin(), it_user->lock_balances.end(), [&](const auto &a) { return a.asset_id == quantity.asset_id; }));
+    
+    // graphene_assert(asset_index < it_user->lock_balances.size(), "账户没有相关资产，不能进行操作");
+    // graphene_assert(it_user->lock_balances[asset_index].amount >= quantity.amount, "账户相关资产余额不足");
+
+    // accounts.modify(it_user, 0, [&](auto &o) { o.lock_balances[asset_index] -= quantity; });
     
 }
 
 /**
  * 内部转账
  */
- void gxbexchange::exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity) {
+ void gxcexchange::exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity) {
     auto it_from = accounts.find(from);
     graphene_assert(it_from != accounts.end(), "转账发送者账户记录不存在");
 
@@ -113,7 +176,7 @@ void gxbexchange::sub_balances_lock(uint64_t user, contract_asset quantity){
 /**
  * 内部lock转转实现(从lock账户到balance) 
  */ 
-void gxbexchange::transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity) {
+void gxcexchange::transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity) {
     auto it_from = accounts.find(from);
     graphene_assert(it_from != accounts.end(), "转账发送者账户记录不存在");
 
@@ -126,7 +189,7 @@ void gxbexchange::transfer_from_lock(uint64_t from, uint64_t to, contract_asset 
 }
 
 // balance转账到lock账户
-void gxbexchange::balance_lock(uint64_t user, contract_asset quantity) {
+void gxcexchange::balance_lock(uint64_t user, contract_asset quantity) {
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "锁定资产发送者账户记录不存在");
 
@@ -135,7 +198,7 @@ void gxbexchange::balance_lock(uint64_t user, contract_asset quantity) {
 
 }
 
-void gxbexchange::unlock_lock_balance(uint64_t user, contract_asset quantity) {
+void gxcexchange::unlock_lock_balance(uint64_t user, contract_asset quantity) {
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "锁定资产发送者账户记录不存在");
 
@@ -143,7 +206,7 @@ void gxbexchange::unlock_lock_balance(uint64_t user, contract_asset quantity) {
     sub_balances_lock(user, quantity);
 }
 
-void gxbexchange::update_sell_order(uint64_t id, contract_asset quantity) {
+void gxcexchange::update_sell_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = sellorders.find(id);
@@ -158,7 +221,7 @@ void gxbexchange::update_sell_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-void gxbexchange::update_buy_order(uint64_t id, contract_asset quantity) {
+void gxcexchange::update_buy_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = buyorders.find(id);
@@ -173,7 +236,7 @@ void gxbexchange::update_buy_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-void gxbexchange::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
+void gxcexchange::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
     uint64_t pk = sellorders.available_primary_key();
     print("sell order pk = ", pk);
     sellorders.emplace(0, [&](auto &a_sell_order) {
@@ -185,7 +248,7 @@ void gxbexchange::insert_sell_order(uint64_t seller, contract_asset quantity, in
     });
 }
 
-void gxbexchange::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
+void gxcexchange::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
     uint64_t pk = buyorders.available_primary_key();
     print("buyer order pk = ", pk);
     buyorders.emplace(0, [&](auto &a_buy_order) {
@@ -197,7 +260,7 @@ void gxbexchange::insert_buy_order(uint64_t buyer, contract_asset quantity, int6
     });
 }
 
-void gxbexchange::insert_profit(contract_asset profit) {
+void gxcexchange::insert_profit(contract_asset profit) {
     uint64_t pk = profits.available_primary_key();
     print("profits pk = ", pk);
     profits.emplace(0, [&](auto &a_profit) {
@@ -207,7 +270,39 @@ void gxbexchange::insert_profit(contract_asset profit) {
     });
 }
 
-void gxbexchange::add_income(contract_asset profit) {
+void gxcexchange::insert_dealorder(int64_t price, contract_asset quantity) {
+    uint64_t pk = dealorders.available_primary_key();
+    print("dealorders pk = ", pk);
+    dealorders.emplace(0, [&](auto &a_dealorder) {
+        a_dealorder.id = pk;
+        a_dealorder.price = price;
+        a_dealorder.quantity = quantity;
+        a_dealorder.order_time = get_head_block_time();
+    });
+}
+
+void gxcexchange::insert_depositlog(uint64_t user, contract_asset amount) {
+    uint64_t pk = depositlogs.available_primary_key();
+    print("depositlogs pk = ", pk);
+    depositlogs.emplace(0, [&](auto &a_depositlog) {
+        a_depositlog.id = pk;
+        a_depositlog.user = user;
+        a_depositlog.quantity = amount;
+        a_depositlog.order_time = get_head_block_time();
+    });
+}
+void gxcexchange::insert_withdrawlog(uint64_t user, contract_asset amount) {
+    uint64_t pk = withdrawlogs.available_primary_key();
+    print("withdrawlogs pk = ", pk);
+    withdrawlogs.emplace(0, [&](auto &a_withdrawlog) {
+        a_withdrawlog.id = pk;
+        a_withdrawlog.user = user;
+        a_withdrawlog.quantity = amount;
+        a_withdrawlog.order_time = get_head_block_time();
+    });
+}
+
+void gxcexchange::add_income(contract_asset profit) {
     graphene_assert(profit.amount > 0, "资金操作不能为负数");
     auto income_asset = incomes.find(profit.asset_id);
     if (income_asset == incomes.end()) {
@@ -224,7 +319,7 @@ void gxbexchange::add_income(contract_asset profit) {
 }
 
 // 当收到卖单请求时得处理方法
-void gxbexchange::sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller) {
+void gxcexchange::sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller) {
     auto idx = buyorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
@@ -259,6 +354,7 @@ void gxbexchange::sell_order_fun(contract_asset quantity, int64_t price, uint64_
 
                 update_buy_order(_buyorder.id, _buyorder.quantity - _buyorder.quantity);
                 quantity -= _buyorder.quantity;
+                insert_dealorder(_buyorder.price, _buyorder.quantity);
             } else {
                 contract_asset trade_plateform_asset{ quantity.amount * price, platform_core_asset_id};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
@@ -272,6 +368,7 @@ void gxbexchange::sell_order_fun(contract_asset quantity, int64_t price, uint64_
 
                 update_buy_order(_buyorder.id, _buyorder.quantity - quantity);
                 quantity -= quantity;
+                insert_dealorder(_buyorder.price, quantity);
             }
         } else {
             break;
@@ -285,7 +382,7 @@ void gxbexchange::sell_order_fun(contract_asset quantity, int64_t price, uint64_
 }
 
 // 收到买单得处理
-void gxbexchange::buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer) {
+void gxcexchange::buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer) {
     auto idx = sellorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
@@ -321,6 +418,7 @@ void gxbexchange::buy_order_fun(contract_asset quantity, int64_t price, uint64_t
 
                 update_sell_order(_sellorder.id, _sellorder.quantity - _sellorder.quantity);
                 quantity -= _sellorder.quantity;
+                insert_dealorder(price, _sellorder.quantity);
             } else {
                 contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, platform_core_asset_id};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
@@ -334,6 +432,7 @@ void gxbexchange::buy_order_fun(contract_asset quantity, int64_t price, uint64_t
 
                 update_sell_order(_sellorder.id, _sellorder.quantity - quantity);
                 quantity -= quantity;
+                insert_dealorder(price, quantity);
             }
         } else {
             break;
@@ -346,7 +445,7 @@ void gxbexchange::buy_order_fun(contract_asset quantity, int64_t price, uint64_t
     }
 }
 
-void gxbexchange::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
+void gxcexchange::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     auto it = sellorders.find(id);
     graphene_assert(it != sellorders.end(), "卖单信息不存在");
     graphene_assert(it->seller == seller, "无权操作");
@@ -355,7 +454,7 @@ void gxbexchange::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     sellorders.erase(it);
 }
 
-void gxbexchange::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
+void gxcexchange::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     auto it = buyorders.find(id);
     graphene_assert(it != buyorders.end(), "买单信息不存在");
     graphene_assert(it->buyer == buyer, "无权操作");
@@ -363,6 +462,4 @@ void gxbexchange::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     contract_asset buy_asset{ it->quantity.amount * it->price, platform_core_asset_id};
     unlock_lock_balance(buyer, buy_asset);
     buyorders.erase(it);
-
-
 }
