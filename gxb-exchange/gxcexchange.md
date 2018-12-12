@@ -92,7 +92,7 @@ get_contract_tables gxcexchangey
   "account",
   "profit",
   "income",
-  "buyorder",
+  "buyorder"
   "sellorder",
   "dealorder",
   "depositlog",
