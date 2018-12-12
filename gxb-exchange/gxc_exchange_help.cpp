@@ -305,9 +305,17 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
 
     vector<buyorder> match_buy_orders;
+    uint64_t match_amount = 0; // 已经匹配得金额数目
+    uint64_t count = 0; // 已经匹配得交易数
     for ( auto itr = match_itr_lower; itr != match_itr_upper; itr++ ) {
         if (itr->price >= price) {
             match_buy_orders.emplace_back(*itr);
+
+            match_amount += itr->quantity.amount;
+            count += 1;
+            if (count > max_match_order_count || match_amount > quantity.amount * match_amount_times) {
+                break;
+            }
         }
     }
 
@@ -367,10 +375,18 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
 
+    uint64_t match_amount = 0; // 已经匹配得金额数目
+    uint64_t count = 0; // 已经匹配得交易数
     vector<sellorder> match_sell_orders;
     for ( auto itr = match_itr_lower; itr != match_itr_upper; itr++ ) {
         if (itr->price <= price) {
             match_sell_orders.emplace_back(*itr);
+
+            match_amount += itr->quantity.amount;
+            count += 1;
+            if (count > max_match_order_count || match_amount > quantity.amount * match_amount_times) {
+                break;
+            }
         }
     }
 

@@ -13,6 +13,8 @@ const uint8_t buy_order_type = 1; //  买单类型
 const uint8_t sell_order_type = 2; //  买单类型
 const uint64_t platform_core_asset_id = 16; // 平台核心资产id WKYCOIN
 const uint64_t profit_account_id = 12; //收益账户id 只有这个人才可以获取平台的收益
+const uint64_t max_match_order_count = 20; // 一个订单中最多去和该数目个订单做撮合
+const uint8_t match_amount_times = 2; //  匹配金额得最大倍数
 
 class gxcexchangey : public contract
 {
