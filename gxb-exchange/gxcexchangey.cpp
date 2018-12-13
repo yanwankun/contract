@@ -130,11 +130,94 @@ void gxcexchangey::deleteall(){
     }
 
     delete_sysconfig();
+    delete_pledge();
     uint64_t max_table_size = get_sysconfig(table_save_count_ID) + get_sysconfig(once_delete_count_ID);
     delete_profit(max_table_size);
     delete_depositlog(max_table_size);
     delete_withdrawlog(max_table_size);
     delete_dealorder(max_table_size);
+}
+
+
+void gxcexchangey::ptdeposite(){
+    uint64_t asset_id = get_action_asset_id();
+    graphene_assert(asset_id == ptcoin_trade_coin_id || asset_id == platform_core_asset_id_VALUE, "该类资产不支持");
+    int64_t asset_amount = get_action_asset_amount();
+    contract_asset amount{asset_amount, asset_id};
+
+    if (asset_id == ptcoin_trade_coin_id) { // 相当于gxc
+        add_pledge(plateform_deposite_gxc_ID, amount);
+    } else { // 预先存储得平台币，别人可以用gxc来购买
+        add_pledge(plateform_deposite_platecoin_ID, amount); 
+    }
+}
+
+void gxcexchangey::ptwithdraw(contract_asset amount) {
+    uint64_t sender = get_trx_sender();
+    authverify(sender);
+
+    uint64_t asset_id = amount.asset_id;
+    graphene_assert(asset_id == ptcoin_trade_coin_id || asset_id == platform_core_asset_id_VALUE, "该类资产不支持");
+
+    if (asset_id == ptcoin_trade_coin_id) { 
+        sub_pledge(plateform_deposite_gxc_ID, amount);
+    } else { 
+        sub_pledge(plateform_deposite_platecoin_ID, amount); 
+    }
+}
+
+void gxcexchangey::buyptcoin() {
+    uint64_t asset_id = get_action_asset_id();
+    graphene_assert(asset_id == ptcoin_trade_coin_id, "该类资产不支持");
+    int64_t asset_amount = get_action_asset_amount();
+    graphene_assert(asset_amount >= 100000 && asset_amount%100000 == 0, "购买支付金额不能低于100000且必须为100000得整数数倍");
+
+    int64_t ptcoint_amount = asset_amount * ptcoin_ratio;
+    int64_t fee_amount = (ptcoint_amount / 100) * ptcoin_trade_fee_ratio;
+    fee_amount = fee_amount > ptcoin_trade_fee_max ? ptcoin_trade_fee_max : fee_amount;
+    fee_amount = fee_amount < ptcoin_trade_fee_min ? ptcoin_trade_fee_min : fee_amount;
+
+    graphene_assert(fee_amount < ptcoint_amount, "金额太小");
+    uint64_t sender = get_trx_sender();
+
+    // 锁定资产
+    contract_asset lock_amount{asset_amount, asset_id};
+    add_pledge(plateform_deposite_lock_gxc_ID, lock_amount);
+
+    // 增加用户余额和系统收益
+    contract_asset buy_amount{ptcoint_amount - fee_amount, platform_core_asset_id_VALUE};
+    contract_asset profit_amount{fee_amount, platform_core_asset_id_VALUE};
+
+    add_balances(sender, buy_amount);
+    insert_profit(profit_amount);
+    add_income(profit_amount);
+}
+
+void gxcexchangey::sellptcoin(contract_asset amount) {
+    graphene_assert(amount.asset_id == platform_core_asset_id_VALUE, "该类资产不支持");
+
+    int64_t fee_amount = (amount.amount / 100) * ptcoin_trade_fee_ratio;
+    fee_amount = fee_amount > ptcoin_trade_fee_max ? ptcoin_trade_fee_max : fee_amount;
+    fee_amount = fee_amount < ptcoin_trade_fee_min ? ptcoin_trade_fee_min : fee_amount;
+
+    contract_asset profit_amount{fee_amount, platform_core_asset_id_VALUE};
+    insert_profit(profit_amount);
+    add_income(profit_amount);
+
+    contract_asset sell_amount{(amount.amount - fee_amount) / ptcoin_ratio, platform_core_asset_id_VALUE};
+
+    auto itr = pledges.find(plateform_deposite_lock_gxc_ID);
+    graphene_assert(itr != pledges.end(), "保证金相关资金不存在");
+    graphene_assert(itr->amount.asset_id == ptcoin_trade_coin_id, "保证金资金出错");
+
+    if (sell_amount.amount > itr->amount.amount) {
+        ptcoin_lock();
+        return;
+    }
+    uint64_t sender = get_trx_sender();
+    sub_balances(sender, amount);
+    sub_pledge(plateform_deposite_lock_gxc_ID, sell_amount);
+    withdraw_asset(_self, sender, sell_amount.asset_id, sell_amount.amount);
 }
 
 GRAPHENE_ABI(gxcexchangey, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit)(updateconfig)(init)(deleteall))

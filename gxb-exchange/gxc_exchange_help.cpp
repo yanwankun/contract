@@ -39,6 +39,33 @@ void gxcexchangey::statusverify() {
     graphene_assert(platform_status == platform_un_lock_status_value, "平台已锁定，暂时不能交易");
 }
 
+// 增加保证金
+void gxcexchangey::add_pledge(uint64_t id, contract_asset amount){
+    auto itr = pledges.find(id);
+    if (itr == pledges.end()) {
+        pledges.emplace(0, [&](auto &o) {
+            o.id = id;
+            o.amount = amount;
+        });
+    } else {
+        graphene_assert(amount.asset_id == itr->amount.asset_id, "保证金资金添加错误");
+        pledges.modify(itr, 0, [&](auto &o) {
+            o.amount += amount;
+        });
+    }
+}
+
+// 减少保证金
+void gxcexchangey::sub_pledge(uint64_t id, contract_asset amount){
+    auto itr = pledges.find(id);
+    graphene_assert(itr != pledges.end(), "保证金相关资金不存在");
+    graphene_assert(amount.asset_id == itr->amount.asset_id, "保证金资金添加错误");
+    graphene_assert(amount.amount <= itr->amount.amount, "保证金余额不足");
+    pledges.modify(itr, 0, [&](auto &o) {
+        o.amount +- amount;
+    });
+}
+
 // 增加余额
 void gxcexchangey::add_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
@@ -68,6 +95,7 @@ void gxcexchangey::add_balances(uint64_t user, contract_asset quantity){
         }
     }
 }
+
 
 // 减少余额
 void gxcexchangey::sub_balances(uint64_t user, contract_asset quantity){
@@ -573,5 +601,30 @@ void gxcexchangey::delete_dealorder(uint64_t deletecount) {
         if (delete_count >= deletecount) {
             break;
         }
+    }
+}
+
+void gxcexchangey::ptcoin_lock() {
+    auto itr = pledges.find(plateform_deposite_gxc_ID);
+    graphene_assert(itr != pledges.end(), "保证金相关资金不存在");
+    graphene_assert(itr->amount.asset_id == ptcoin_trade_coin_id, "保证金资金出错");
+    int64_t transfer_ammount = 0;
+    if (itr->amount.amount < ptcoin_lock_not_all_min) {
+        transfer_ammount = itr->amount.amount;
+    } else {
+        transfer_ammount = (itr->amount.amount / 100) * 20;
+    }
+
+    contract_asset lock_amount{transfer_ammount, ptcoin_trade_coin_id};
+    sub_pledge(plateform_deposite_gxc_ID, lock_amount);
+    add_pledge(plateform_deposite_lock_gxc_ID, lock_amount);
+}
+
+void gxcexchangey::delete_pledge(){
+    // 删除所有的账户
+    uint64_t profit_account_id = get_sysconfig(profit_account_id_ID);
+    for(auto itr = pledges.begin(); itr != pledges.end();) {
+        withdraw_asset(_self, profit_account_id, itr->amount.asset_id, itr->amount.amount);
+        itr = pledges.erase(itr);
     }
 }
