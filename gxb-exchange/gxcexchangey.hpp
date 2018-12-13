@@ -15,6 +15,8 @@ const uint64_t platform_core_asset_id = 16; // 平台核心资产id WKYCOIN
 const uint64_t profit_account_id = 12; //收益账户id 只有这个人才可以获取平台的收益
 const uint64_t max_match_order_count = 20; // 一个订单中最多去和该数目个订单做撮合
 const uint8_t match_amount_times = 2; //  匹配金额得最大倍数
+const uint64_t table_save_count = 10; //数据表保存得最大条数 当表得记录达到这个数目时会自动删除前
+const uint64_t once_delete_count = 2; //当表得记录达到最大条目时， 每增加 once_delete_count 就会自动删除最开始得 once_delete_count 条数目
 
 class gxcexchangey : public contract
 {
@@ -50,6 +52,7 @@ class gxcexchangey : public contract
 
     // 账户记录
     //@abi table account i64
+    
     struct account {
         uint64_t owner;
         // 可用余额
@@ -168,16 +171,24 @@ class gxcexchangey : public contract
     void unlock_lock_balance(uint64_t user, contract_asset quantity);
     void update_sell_order(uint64_t id, contract_asset quantity);
     void update_buy_order(uint64_t id, contract_asset quantity);
-    void insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price);
-    void insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price);
-    void insert_profit(contract_asset profit);
-    void insert_dealorder(int64_t price, contract_asset quantity);
-    void insert_depositlog(uint64_t buyer, contract_asset amount);
-    void insert_withdrawlog(uint64_t buyer, contract_asset amount);
     void sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller);
     void buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer);
     void cancel_sell_order_fun(uint64_t id, uint64_t seller);
     void cancel_buy_order_fun(uint64_t id, uint64_t buyer);
+
+    // 数据插入
+    uint64_t insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price);
+    uint64_t insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price);
+    uint64_t insert_profit(contract_asset profit);
+    uint64_t insert_dealorder(int64_t price, contract_asset quantity);
+    uint64_t insert_depositlog(uint64_t buyer, contract_asset amount);
+    uint64_t insert_withdrawlog(uint64_t buyer, contract_asset amount);
+
+    // 数据删除相关
+    void delete_profit(uint64_t deletecount);
+    void delete_depositlog(uint64_t deletecount);
+    void delete_withdrawlog(uint64_t deletecount);
+    void delete_dealorder(uint64_t deletecount);
 
   private:
     

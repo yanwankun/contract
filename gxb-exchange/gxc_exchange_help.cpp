@@ -231,7 +231,7 @@ void gxcexchangey::update_buy_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-void gxcexchangey::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
+uint64_t gxcexchangey::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
     uint64_t pk = sellorders.available_primary_key();
     print("sell order pk = ", pk);
     sellorders.emplace(0, [&](auto &a_sell_order) {
@@ -241,9 +241,10 @@ void gxcexchangey::insert_sell_order(uint64_t seller, contract_asset quantity, i
         a_sell_order.seller = seller;
         a_sell_order.order_time = get_head_block_time();
     });
+    return pk;
 }
 
-void gxcexchangey::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
+uint64_t gxcexchangey::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
     uint64_t pk = buyorders.available_primary_key();
     print("buyer order pk = ", pk);
     buyorders.emplace(0, [&](auto &a_buy_order) {
@@ -253,9 +254,10 @@ void gxcexchangey::insert_buy_order(uint64_t buyer, contract_asset quantity, int
         a_buy_order.buyer = buyer;
         a_buy_order.order_time = get_head_block_time();
     });
+    return pk;
 }
 
-void gxcexchangey::insert_profit(contract_asset profit) {
+uint64_t gxcexchangey::insert_profit(contract_asset profit) {
     uint64_t pk = profits.available_primary_key();
     print("profits pk = ", pk);
     profits.emplace(0, [&](auto &a_profit) {
@@ -263,9 +265,14 @@ void gxcexchangey::insert_profit(contract_asset profit) {
         a_profit.profit_asset = profit;
         a_profit.profit_time = get_head_block_time();
     });
+    if (pk > table_save_count && pk % once_delete_count == 0) {
+        delete_profit(once_delete_count);
+    }
+    return pk;
 }
 
-void gxcexchangey::insert_dealorder(int64_t price, contract_asset quantity) {
+
+uint64_t gxcexchangey::insert_dealorder(int64_t price, contract_asset quantity) {
     uint64_t pk = dealorders.available_primary_key();
     print("dealorders pk = ", pk);
     dealorders.emplace(0, [&](auto &a_dealorder) {
@@ -274,9 +281,13 @@ void gxcexchangey::insert_dealorder(int64_t price, contract_asset quantity) {
         a_dealorder.quantity = quantity;
         a_dealorder.order_time = get_head_block_time();
     });
+    if (pk > table_save_count && pk % once_delete_count == 0) {
+        delete_dealorder(once_delete_count);
+    }
+    return pk;
 }
 
-void gxcexchangey::insert_depositlog(uint64_t user, contract_asset amount) {
+uint64_t gxcexchangey::insert_depositlog(uint64_t user, contract_asset amount) {
     uint64_t pk = depositlogs.available_primary_key();
     print("depositlogs pk = ", pk);
     depositlogs.emplace(0, [&](auto &a_depositlog) {
@@ -285,8 +296,12 @@ void gxcexchangey::insert_depositlog(uint64_t user, contract_asset amount) {
         a_depositlog.quantity = amount;
         a_depositlog.order_time = get_head_block_time();
     });
+    if (pk > table_save_count && pk % once_delete_count == 0) {
+        delete_depositlog(once_delete_count);
+    }
+    return pk;
 }
-void gxcexchangey::insert_withdrawlog(uint64_t user, contract_asset amount) {
+uint64_t gxcexchangey::insert_withdrawlog(uint64_t user, contract_asset amount) {
     uint64_t pk = withdrawlogs.available_primary_key();
     print("withdrawlogs pk = ", pk);
     withdrawlogs.emplace(0, [&](auto &a_withdrawlog) {
@@ -295,6 +310,10 @@ void gxcexchangey::insert_withdrawlog(uint64_t user, contract_asset amount) {
         a_withdrawlog.quantity = amount;
         a_withdrawlog.order_time = get_head_block_time();
     });
+    if (pk > table_save_count && pk % once_delete_count == 0) {
+        delete_withdrawlog(once_delete_count);
+    }
+    return pk;
 }
 
 
@@ -458,4 +477,50 @@ void gxcexchangey::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     contract_asset buy_asset{ it->quantity.amount * it->price, platform_core_asset_id};
     unlock_lock_balance(buyer, buy_asset);
     buyorders.erase(it);
+}
+
+
+// 数据删除
+void gxcexchangey::delete_profit(uint64_t deletecount) {
+    uint64_t delete_count = 0;
+    for(auto itr = profits.begin(); itr != profits.end();) {
+        itr = profits.erase(itr);
+        delete_count++;
+        if (delete_count >= deletecount) {
+            break;
+        }
+    }
+}
+
+void gxcexchangey::delete_depositlog(uint64_t deletecount) {
+    uint64_t delete_count = 0;
+    for(auto itr = depositlogs.begin(); itr != depositlogs.end();) {
+        itr = depositlogs.erase(itr);
+        delete_count++;
+        if (delete_count >= deletecount) {
+            break;
+        }
+    }
+}
+
+void gxcexchangey::delete_withdrawlog(uint64_t deletecount) {
+    uint64_t delete_count = 0;
+    for(auto itr = withdrawlogs.begin(); itr != withdrawlogs.end();) {
+        itr = withdrawlogs.erase(itr);
+        delete_count++;
+        if (delete_count >= deletecount) {
+            break;
+        }
+    }
+}
+
+void gxcexchangey::delete_dealorder(uint64_t deletecount) {
+    uint64_t delete_count = 0;
+    for(auto itr = dealorders.begin(); itr != dealorders.end();) {
+        itr = dealorders.erase(itr);
+        delete_count++;
+        if (delete_count >= deletecount) {
+            break;
+        }
+    }
 }
