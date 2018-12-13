@@ -342,6 +342,14 @@ void gxcexchangey::insert_sysconfig(uint64_t id, uint64_t value) {
 void gxcexchangey::update_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
     graphene_assert(it != sysconfigs.end(), "配置信息不存在");
+
+    if (id == table_save_count_ID || id == once_delete_count_ID) {
+        graphene_assert(it->value < value, "该配置只能增加不能减少");
+    }
+    if (id == platform_status_ID) {
+        graphene_assert(value == platform_lock_status_value || value == platform_un_lock_status_value, "交易所状态值不存在");
+    }
+
     sysconfigs.modify(it, 0, [&](auto &o) {
         o.value = value;
     });
@@ -351,6 +359,12 @@ uint64_t gxcexchangey::get_sysconfig(uint64_t id) {
     auto it = sysconfigs.find(id);
     graphene_assert(it != sysconfigs.end(), "配置信息不存在");
     return it->value;
+}
+
+void gxcexchangey::delete_sysconfig() {
+    for(auto itr = sysconfigs.begin(); itr != sysconfigs.end();) {
+        itr = sysconfigs.erase(itr);
+    }
 }
 
 
@@ -386,12 +400,12 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
     for (buyorder _buyorder : match_buy_orders) { 
         if (quantity.amount > 0) {
             if (_buyorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
+                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price, platform_core_asset_id_VALUE};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, _buyorder.quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price), get_sysconfig(platform_core_asset_id_ID)};
+                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price), platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -400,12 +414,12 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
                 insert_dealorder(_buyorder.price, _buyorder.quantity);
                 quantity -= _buyorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
+                contract_asset trade_plateform_asset{ quantity.amount * price, platform_core_asset_id_VALUE};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ quantity.amount * (_buyorder.price - price), get_sysconfig(platform_core_asset_id_ID)};
+                    contract_asset profit{ quantity.amount * (_buyorder.price - price), platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -448,7 +462,7 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
 
     if (match_sell_orders.size() == 0) {
         insert_buy_order(buyer, quantity, price);
-        contract_asset lock_asset{ quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
+        contract_asset lock_asset{ quantity.amount * price, platform_core_asset_id_VALUE};
         balance_lock(buyer, lock_asset);
         return;
     }
@@ -458,12 +472,12 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
     for (sellorder _sellorder : match_sell_orders) { 
         if (quantity.amount > 0) {
             if (_sellorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price, get_sysconfig(platform_core_asset_id_ID)};
+                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price, platform_core_asset_id_VALUE};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, _sellorder.quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price), get_sysconfig(platform_core_asset_id_ID)};
+                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price), platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -472,12 +486,12 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
                 insert_dealorder(price, _sellorder.quantity);
                 quantity -= _sellorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, get_sysconfig(platform_core_asset_id_ID)};
+                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, platform_core_asset_id_VALUE};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ quantity.amount * (price - _sellorder.price), get_sysconfig(platform_core_asset_id_ID)};
+                    contract_asset profit{ quantity.amount * (price - _sellorder.price), platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -511,7 +525,7 @@ void gxcexchangey::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     graphene_assert(it != buyorders.end(), "买单信息不存在");
     graphene_assert(it->buyer == buyer, "无权操作");
 
-    contract_asset buy_asset{ it->quantity.amount * it->price, get_sysconfig(platform_core_asset_id_ID)};
+    contract_asset buy_asset{ it->quantity.amount * it->price, platform_core_asset_id_VALUE};
     unlock_lock_balance(buyer, buy_asset);
     buyorders.erase(it);
 }

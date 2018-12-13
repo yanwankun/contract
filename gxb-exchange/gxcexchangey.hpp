@@ -13,19 +13,20 @@ const uint8_t buy_order_type = 1; //  买单类型
 const uint8_t sell_order_type = 2; //  买单类型
 const uint64_t platform_lock_status_value = 1; // 平台交易锁定
 const uint64_t platform_un_lock_status_value = 2; // 平台交易未锁定
+const uint64_t platform_core_asset_id_VALUE = 16; // 平台核心资产id WKYCOIN
 
-const uint64_t platform_core_asset_id_ID = 0;
 const uint64_t profit_account_id_ID = 1;
+const uint64_t platform_status_ID = 6;  
 const uint64_t max_match_order_count_ID = 2;
 const uint64_t match_amount_times_ID = 3;
+
 const uint64_t table_save_count_ID = 4;
 const uint64_t once_delete_count_ID = 5;
-const uint64_t platform_status_ID = 6;  
 
-const uint64_t platform_core_asset_id_VALUE = 16; // 平台核心资产id WKYCOIN
 const uint64_t profit_account_id_VALUE = 12; //收益账户id 只有这个人才可以获取平台的收益
-const uint64_t max_match_order_count_VALUE = 20; // 一个订单中最多去和该数目个订单做撮合
 const uint64_t match_amount_times_VALUE = 2; //  匹配金额得最大倍数
+const uint64_t max_match_order_count_VALUE = 20; // 一个订单中最多去和该数目个订单做撮合
+
 const uint64_t table_save_count_VALUE = 10; //数据表保存得最大条数 当表得记录达到这个数目时会自动删除前
 const uint64_t once_delete_count_VALUE = 2; //当表得记录达到最大条目时， 每增加 once_delete_count 就会自动删除最开始得 once_delete_count 条数目
 
@@ -218,6 +219,7 @@ class gxcexchangey : public contract
     void insert_sysconfig(uint64_t id, uint64_t value);
     void update_sysconfig(uint64_t id, uint64_t value);
     uint64_t get_sysconfig(uint64_t id);
+    void delete_sysconfig();
 
     // 数据删除相关
     void delete_profit(uint64_t deletecount);

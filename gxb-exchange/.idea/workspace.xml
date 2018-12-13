@@ -48,8 +48,8 @@
       <file leaf-file-name="gxcexchangey.hpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gxcexchangey.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="38">
-              <caret line="65" column="6" lean-forward="true" selection-start-line="65" selection-start-column="6" selection-end-line="65" selection-end-column="6" />
+            <state relative-caret-position="475">
+              <caret line="88" column="6" lean-forward="true" selection-start-line="88" selection-start-column="6" selection-end-line="88" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -82,6 +82,7 @@
       <list>
         <option value="$PROJECT_DIR$/gxcexchangey.cpp" />
         <option value="$PROJECT_DIR$/gxcexchange.md" />
+        <option value="$PROJECT_DIR$/gxc_exchange_help.cpp" />
       </list>
     </option>
   </component>
@@ -548,12 +549,12 @@
       <option name="presentableId" value="Default" />
       <updated>1544583935178</updated>
       <workItem from="1544583936638" duration="1873000" />
-      <workItem from="1544668338396" duration="85000" />
+      <workItem from="1544668338396" duration="683000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1958000" />
+    <option name="totallyTimeSpent" value="2556000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="1" />
@@ -649,8 +650,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gxcexchangey.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="38">
-          <caret line="65" column="6" lean-forward="true" selection-start-line="65" selection-start-column="6" selection-end-line="65" selection-end-column="6" />
+        <state relative-caret-position="475">
+          <caret line="88" column="6" lean-forward="true" selection-start-line="88" selection-start-column="6" selection-end-line="88" selection-end-column="6" />
           <folding />
         </state>
       </provider>
