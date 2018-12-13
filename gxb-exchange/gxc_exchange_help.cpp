@@ -29,6 +29,16 @@ bool selloredercomp(const gxcexchangey::sellorder &a, const gxcexchangey::sellor
     }
 }
 
+void gxcexchangey::authverify(uint64_t sender) {
+    uint64_t profit_account_id = get_sysconfig(profit_account_id_ID);
+    graphene_assert(sender == profit_account_id, "越权操作");
+}
+
+void gxcexchangey::statusverify() {
+    uint64_t platform_status = get_sysconfig(platform_status_ID);
+    graphene_assert(platform_status == platform_un_lock_status_value, "平台已锁定，暂时不能交易");
+}
+
 // 增加余额
 void gxcexchangey::add_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
@@ -265,7 +275,8 @@ uint64_t gxcexchangey::insert_profit(contract_asset profit) {
         a_profit.profit_asset = profit;
         a_profit.profit_time = get_head_block_time();
     });
-    if (pk > table_save_count && pk % once_delete_count == 0) {
+    uint64_t once_delete_count = get_sysconfig(once_delete_count_ID);
+    if (pk > get_sysconfig(table_save_count_ID) && pk % once_delete_count == 0) {
         delete_profit(once_delete_count);
     }
     return pk;
@@ -281,7 +292,8 @@ uint64_t gxcexchangey::insert_dealorder(int64_t price, contract_asset quantity) 
         a_dealorder.quantity = quantity;
         a_dealorder.order_time = get_head_block_time();
     });
-    if (pk > table_save_count && pk % once_delete_count == 0) {
+    uint64_t once_delete_count = get_sysconfig(once_delete_count_ID);
+    if (pk > get_sysconfig(table_save_count_ID) && pk % once_delete_count == 0) {
         delete_dealorder(once_delete_count);
     }
     return pk;
@@ -296,7 +308,8 @@ uint64_t gxcexchangey::insert_depositlog(uint64_t user, contract_asset amount) {
         a_depositlog.quantity = amount;
         a_depositlog.order_time = get_head_block_time();
     });
-    if (pk > table_save_count && pk % once_delete_count == 0) {
+    uint64_t once_delete_count = get_sysconfig(once_delete_count_ID);
+    if (pk > get_sysconfig(table_save_count_ID) && pk % once_delete_count == 0) {
         delete_depositlog(once_delete_count);
     }
     return pk;
@@ -310,10 +323,34 @@ uint64_t gxcexchangey::insert_withdrawlog(uint64_t user, contract_asset amount) 
         a_withdrawlog.quantity = amount;
         a_withdrawlog.order_time = get_head_block_time();
     });
-    if (pk > table_save_count && pk % once_delete_count == 0) {
+    uint64_t once_delete_count = get_sysconfig(once_delete_count_ID);
+    if (pk > get_sysconfig(table_save_count_ID) && pk % once_delete_count == 0) {
         delete_withdrawlog(once_delete_count);
     }
     return pk;
+}
+
+void gxcexchangey::insert_sysconfig(uint64_t id, uint64_t value) {
+    auto it = sysconfigs.find(id);
+    graphene_assert(it == sysconfigs.end(), "配置信息已存在");
+    sysconfigs.emplace(0, [&](auto &a_config) {
+        a_config.id = id;
+        a_config.value = value;
+    });
+}
+
+void gxcexchangey::update_sysconfig(uint64_t id, uint64_t value) {
+    auto it = sysconfigs.find(id);
+    graphene_assert(it != sysconfigs.end(), "配置信息不存在");
+    sysconfigs.modify(it, 0, [&](auto &o) {
+        o.value = value;
+    });
+}
+
+uint64_t gxcexchangey::get_sysconfig(uint64_t id) {
+    auto it = sysconfigs.find(id);
+    graphene_assert(it != sysconfigs.end(), "配置信息不存在");
+    return it->value;
 }
 
 
@@ -332,7 +369,7 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
 
             match_amount += itr->quantity.amount;
             count += 1;
-            if (count > max_match_order_count || match_amount > quantity.amount * match_amount_times) {
+            if (count > get_sysconfig(max_match_order_count_ID) || match_amount > quantity.amount * get_sysconfig(match_amount_times_ID)) {
                 break;
             }
         }
@@ -349,12 +386,12 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
     for (buyorder _buyorder : match_buy_orders) { 
         if (quantity.amount > 0) {
             if (_buyorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price, platform_core_asset_id};
+                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, _buyorder.quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price), platform_core_asset_id};
+                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price), get_sysconfig(platform_core_asset_id_ID)};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -363,12 +400,12 @@ void gxcexchangey::sell_order_fun(contract_asset quantity, int64_t price, uint64
                 insert_dealorder(_buyorder.price, _buyorder.quantity);
                 quantity -= _buyorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * price, platform_core_asset_id};
+                contract_asset trade_plateform_asset{ quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ quantity.amount * (_buyorder.price - price), platform_core_asset_id};
+                    contract_asset profit{ quantity.amount * (_buyorder.price - price), get_sysconfig(platform_core_asset_id_ID)};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -403,7 +440,7 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
 
             match_amount += itr->quantity.amount;
             count += 1;
-            if (count > max_match_order_count || match_amount > quantity.amount * match_amount_times) {
+            if (count > get_sysconfig(max_match_order_count_ID) || match_amount > quantity.amount * get_sysconfig(match_amount_times_ID)) {
                 break;
             }
         }
@@ -411,7 +448,7 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
 
     if (match_sell_orders.size() == 0) {
         insert_buy_order(buyer, quantity, price);
-        contract_asset lock_asset{ quantity.amount * price, platform_core_asset_id};
+        contract_asset lock_asset{ quantity.amount * price, get_sysconfig(platform_core_asset_id_ID)};
         balance_lock(buyer, lock_asset);
         return;
     }
@@ -421,12 +458,12 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
     for (sellorder _sellorder : match_sell_orders) { 
         if (quantity.amount > 0) {
             if (_sellorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price, platform_core_asset_id};
+                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price, get_sysconfig(platform_core_asset_id_ID)};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, _sellorder.quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price), platform_core_asset_id};
+                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price), get_sysconfig(platform_core_asset_id_ID)};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -435,12 +472,12 @@ void gxcexchangey::buy_order_fun(contract_asset quantity, int64_t price, uint64_
                 insert_dealorder(price, _sellorder.quantity);
                 quantity -= _sellorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, platform_core_asset_id};
+                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, get_sysconfig(platform_core_asset_id_ID)};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ quantity.amount * (price - _sellorder.price), platform_core_asset_id};
+                    contract_asset profit{ quantity.amount * (price - _sellorder.price), get_sysconfig(platform_core_asset_id_ID)};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -474,7 +511,7 @@ void gxcexchangey::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     graphene_assert(it != buyorders.end(), "买单信息不存在");
     graphene_assert(it->buyer == buyer, "无权操作");
 
-    contract_asset buy_asset{ it->quantity.amount * it->price, platform_core_asset_id};
+    contract_asset buy_asset{ it->quantity.amount * it->price, get_sysconfig(platform_core_asset_id_ID)};
     unlock_lock_balance(buyer, buy_asset);
     buyorders.erase(it);
 }

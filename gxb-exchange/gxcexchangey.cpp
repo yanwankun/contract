@@ -41,6 +41,7 @@ void gxcexchangey::withdraw(std::string to_account, contract_asset amount)
  * */
 void gxcexchangey::pendingorder(uint8_t type, contract_asset quantity, int64_t price) 
 {
+    statusverify();
     graphene_assert(quantity.amount > 0, "挂单金额不能小于或等于零");
     graphene_assert(price > 0, "挂单价格不能小于或等于零");
     uint64_t sender = get_trx_sender();
@@ -64,7 +65,7 @@ void gxcexchangey::cancelorder(uint8_t type, uint64_t id) {
 
 void gxcexchangey::fetchprofit(std::string to_account, contract_asset amount) {
     uint64_t sender = get_trx_sender();
-    graphene_assert(sender == profit_account_id, "越权操作");
+    authverify(sender);
 
     int64_t account_id = get_account_id(to_account.c_str(), to_account.size());
     graphene_assert(account_id >= 0, "目的账户不存在");
@@ -73,4 +74,29 @@ void gxcexchangey::fetchprofit(std::string to_account, contract_asset amount) {
     withdraw_asset(_self, account_id, amount.asset_id, amount.amount);
 }
 
-GRAPHENE_ABI(gxcexchangey, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit))
+void gxcexchangey::updateconfig(uint64_t id, uint64_t value) {
+    uint64_t sender = get_trx_sender();
+    authverify(sender);
+    update_sysconfig(id, value);
+}
+
+void gxcexchangey::init(){
+    auto it = sysconfigs.find(platform_core_asset_id_ID);
+    graphene_assert(it == sysconfigs.end(), "配置信息已存在,不能进行init");
+    
+    insert_sysconfig(platform_core_asset_id_ID, platform_core_asset_id_VALUE);
+    insert_sysconfig(profit_account_id_ID, profit_account_id_VALUE);
+    insert_sysconfig(max_match_order_count_ID, max_match_order_count_VALUE);
+    insert_sysconfig(match_amount_times_ID, match_amount_times_VALUE);
+    insert_sysconfig(table_save_count_ID, table_save_count_VALUE);
+    insert_sysconfig(once_delete_count_ID, once_delete_count_VALUE);
+    insert_sysconfig(platform_status_ID, platform_un_lock_status_value);
+
+}
+
+void gxcexchangey::deleteall(){
+    uint64_t sender = get_trx_sender();
+    authverify(sender);
+}
+
+GRAPHENE_ABI(gxcexchangey, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit)(updateconfig)(init)(deleteall))
