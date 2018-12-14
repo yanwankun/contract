@@ -13,7 +13,7 @@ const uint8_t buy_order_type = 1; //  买单类型
 const uint8_t sell_order_type = 2; //  买单类型
 const uint64_t platform_lock_status_value = 1; // 平台交易锁定
 const uint64_t platform_un_lock_status_value = 2; // 平台交易未锁定
-const uint64_t platform_core_asset_id_VALUE = 16; // 平台核心资产id WKYCOIN
+const uint64_t platform_core_asset_id_VALUE = 18; // 平台核心资产id YTSYTS
 
 const uint64_t profit_account_id_ID = 1;
 const uint64_t platform_status_ID = 0;  
@@ -23,7 +23,7 @@ const uint64_t match_amount_times_ID = 3;
 const uint64_t table_save_count_ID = 4;
 const uint64_t once_delete_count_ID = 5;
 
-const uint64_t profit_account_id_VALUE = 12; //收益账户id 只有这个人才可以获取平台的收益
+const uint64_t profit_account_id_VALUE = 980; //收益账户id 只有这个人才可以获取平台的收益
 const uint64_t match_amount_times_VALUE = 2; //  匹配金额得最大倍数
 const uint64_t max_match_order_count_VALUE = 20; // 一个订单中最多去和该数目个订单做撮合
 
@@ -31,11 +31,11 @@ const uint64_t table_save_count_VALUE = 10; //数据表保存得最大条数 当
 const uint64_t once_delete_count_VALUE = 2; //当表得记录达到最大条目时， 每增加 once_delete_count 就会自动删除最开始得 once_delete_count 条数目
 
 // 保证金相关配置
-const uint64_t ptcoin_trade_coin_id = 20; //能够购买和卖出平台得可交易币得id
+const uint64_t ptcoin_trade_coin_id = 16; //能够购买和卖出平台得可交易币得id WKYCOIN
 const int64_t ptcoin_ratio = 20; //平台币和gxc得兑换比率 这个不可更改
-const uint64_t ptcoin_trade_fee_ratio = 20; //购买和卖出平台币得手续费
-const uint64_t ptcoin_trade_fee_min = 400000; //购买和卖出平台币得最小手续费
-const uint64_t ptcoin_trade_fee_max = 2000000; //购买和卖出平台币得最大手续费
+const uint64_t ptcoin_trade_fee_ratio = 1; //购买和卖出平台币得手续费
+const uint64_t ptcoin_trade_fee_min = 40000; //购买和卖出平台币得最小手续费
+const uint64_t ptcoin_trade_fee_max = 200000; //购买和卖出平台币得最大手续费
 const uint64_t plateform_deposite_platecoin_ID = 0; //平台的平台币 这个可以提走
 const uint64_t plateform_deposite_gxc_ID = 1;  // 平台的gxc资产id，这个也可以提走
 const uint64_t plateform_deposite_lock_gxc_ID = 2; //平台锁定的gxc资产id 这个是为了保证智能合约内部得平台币和gxc得自由兑换
@@ -43,10 +43,10 @@ const uint64_t plateform_deposite_lock_gxc_ID = 2; //平台锁定的gxc资产id 
 const uint64_t ptcoin_lock_not_all_min = 100000000; //当平台保证金小于这个数目(1000GXC)时,
 const uint64_t ptcoin_lock_ratio = 20; //保证金锁定比率
 
-class gxcexchangey : public contract
+class gxcexchangec : public contract
 {
   public:
-    gxcexchangey(uint64_t account_id)
+    gxcexchangec(uint64_t account_id)
         : contract(account_id)
         , accounts(_self, _self)
         , buyorders(_self, _self)
