@@ -1,8 +1,8 @@
-#include "gxc_exchange_help.cpp"
+#include "exchangeyan_help.cpp"
 
 using namespace graphene;
 
-void gxcexchangec::deposit()
+void exchangeyan::deposit()
 {
     int64_t asset_amount = get_action_asset_amount();
     uint64_t asset_id = get_action_asset_id();
@@ -13,7 +13,7 @@ void gxcexchangec::deposit()
     insert_depositlog(owner, amount);
 }
 
-void gxcexchangec::withdraw(std::string to_account, contract_asset amount)
+void exchangeyan::withdraw(std::string to_account, contract_asset amount)
 {
 
     int64_t account_id = get_account_id(to_account.c_str(), to_account.size());
@@ -39,7 +39,7 @@ void gxcexchangec::withdraw(std::string to_account, contract_asset amount)
  * 其次 如果是卖单， 就从买单列表中查询相同资产得买单，找出所有价格合适得订单，从中匹配交易，如果有剩余则存入卖单列表，如没有则结束， 买单跟卖单处理过程类似
  * 
  * */
-void gxcexchangec::pendingorder(uint8_t type, contract_asset quantity, int64_t price) 
+void exchangeyan::pendingorder(uint8_t type, contract_asset quantity, int64_t price) 
 {
     statusverify();
     graphene_assert(quantity.amount > 0, "挂单金额不能小于或等于零");
@@ -53,7 +53,7 @@ void gxcexchangec::pendingorder(uint8_t type, contract_asset quantity, int64_t p
 
 }
 
-void gxcexchangec::cancelorder(uint8_t type, uint64_t id) {
+void exchangeyan::cancelorder(uint8_t type, uint64_t id) {
 
     uint64_t sender = get_trx_sender();
     if (sell_order_type == type) {
@@ -63,7 +63,7 @@ void gxcexchangec::cancelorder(uint8_t type, uint64_t id) {
     }
 }
 
-void gxcexchangec::fetchprofit(std::string to_account, contract_asset amount) {
+void exchangeyan::fetchprofit(std::string to_account, contract_asset amount) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -74,13 +74,13 @@ void gxcexchangec::fetchprofit(std::string to_account, contract_asset amount) {
     withdraw_asset(_self, account_id, amount.asset_id, amount.amount);
 }
 
-void gxcexchangec::updateconfig(uint64_t id, uint64_t value) {
+void exchangeyan::updateconfig(uint64_t id, uint64_t value) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
     update_sysconfig(id, value);
 }
 
-void gxcexchangec::init(){
+void exchangeyan::init(){
     auto it = sysconfigs.find(profit_account_id_ID);
     graphene_assert(it == sysconfigs.end(), "配置信息已存在,不能进行init");
     
@@ -93,7 +93,7 @@ void gxcexchangec::init(){
 
 }
 
-void gxcexchangec::deleteall(){
+void exchangeyan::deleteall(){
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -105,7 +105,7 @@ void gxcexchangec::deleteall(){
 
     // 删除所有得买单
     for(auto itr = buyorders.begin(); itr != buyorders.end();) {
-        contract_asset buy_asset{ itr->quantity.amount * itr->price, platform_core_asset_id_VALUE};
+        contract_asset buy_asset{ itr->quantity.amount * itr->price / asset_recision, platform_core_asset_id_VALUE};
         unlock_lock_balance(itr->buyer, buy_asset);
         itr = buyorders.erase(itr);
     }
@@ -139,7 +139,7 @@ void gxcexchangec::deleteall(){
 }
 
 
-void gxcexchangec::ptdeposite(){
+void exchangeyan::ptdeposite(){
     uint64_t asset_id = get_action_asset_id();
     graphene_assert(asset_id == ptcoin_trade_coin_id || asset_id == platform_core_asset_id_VALUE, "该类资产不支持");
     int64_t asset_amount = get_action_asset_amount();
@@ -152,7 +152,7 @@ void gxcexchangec::ptdeposite(){
     }
 }
 
-void gxcexchangec::ptwithdraw(contract_asset amount) {
+void exchangeyan::ptwithdraw(contract_asset amount) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -166,7 +166,7 @@ void gxcexchangec::ptwithdraw(contract_asset amount) {
     }
 }
 
-void gxcexchangec::buyptcoin() {
+void exchangeyan::buyptcoin() {
     uint64_t asset_id = get_action_asset_id();
     graphene_assert(asset_id == ptcoin_trade_coin_id, "该类资产不支持");
     int64_t asset_amount = get_action_asset_amount();
@@ -193,7 +193,7 @@ void gxcexchangec::buyptcoin() {
     add_income(profit_amount);
 }
 
-void gxcexchangec::sellptcoin(contract_asset amount) {
+void exchangeyan::sellptcoin(contract_asset amount) {
     graphene_assert(amount.asset_id == platform_core_asset_id_VALUE, "该类资产不支持");
 
     int64_t fee_amount = (amount.amount / 100) * ptcoin_trade_fee_ratio;
@@ -220,4 +220,4 @@ void gxcexchangec::sellptcoin(contract_asset amount) {
     withdraw_asset(_self, sender, sell_amount.asset_id, sell_amount.amount);
 }
 
-GRAPHENE_ABI(gxcexchangec, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit)(updateconfig)(init)(deleteall)(ptdeposite)(ptwithdraw)(buyptcoin)(sellptcoin))
+GRAPHENE_ABI(exchangeyan, (deposit)(withdraw)(pendingorder)(cancelorder)(fetchprofit)(updateconfig)(init)(deleteall)(ptdeposite)(ptwithdraw)(buyptcoin)(sellptcoin))

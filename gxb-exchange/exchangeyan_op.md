@@ -5,14 +5,14 @@
 
 ## 编译合约
 ``````
-gxx -g gxcexchangec.abi gxcexchangec.cpp
-gxx -o gxcexchangec.wast gxcexchangec.cpp
+gxx -g exchangeyan.abi exchangeyan.cpp
+gxx -o exchangeyan.wast exchangeyan.cpp
 ``````
 
-## 部署合约 合约名为 gxcexchangec
+## 部署合约 合约名为 exchangeyan
 ``````
-deploy_contract gxcexchangec yanwankun-test 0 0 ./contract/gxcexchangec GXC true    
-deploy_contract gxcexchangec yanwankun-test 0 0 ./contract/gxcexchangec GXC true
+deploy_contract exchangeyan yanwankun-test 0 0 ./contract/exchangeyan GXC true    
+deploy_contract exchangeyan yanwankun-test 0 0 ./contract/exchangeyan GXC true
 {
   "ref_block_num": 9482,
   "ref_block_prefix": 591544432,
@@ -23,7 +23,7 @@ deploy_contract gxcexchangec yanwankun-test 0 0 ./contract/gxcexchangec GXC true
           "amount": 1372855,
           "asset_id": "1.3.1"
         },
-        "name": "gxcexchangec",
+        "name": "exchangeyan",
         "account": "1.2.980",
         "vm_type": "0",
         "vm_version": "0",
@@ -419,14 +419,30 @@ deploy_contract gxcexchangec yanwankun-test 0 0 ./contract/gxcexchangec GXC true
     "20332b4c3a1c832045900778efba23180b40fa57c587e296c66c54b86cfc407fb945e37c5e4ae35ef6b45881dac2dea46d3ab549ba0fba6bd875a2133381d33539"
   ]
 }
+
+unlocked >>> get_contract_tables exchangeyan
+get_contract_tables exchangeyan
+[
+  "account",
+  "profit",
+  "income",
+  "buyorder",
+  "sellorder",
+  "dealorder",
+  "depositlog",
+  "withdrawlog",
+  "sysconfig",
+  "pledge"
+]
+
 ``````
 
 ### 合约调用
 #第一部分平台初始化
 ##第一步先要初始化合约
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec null init "{}" GXS true
-call_contract yanwankun-test gxcexchangec null init "{}" GXS true
+unlocked >>> call_contract yanwankun-test exchangeyan null init "{}" GXS true
+call_contract yanwankun-test exchangeyan null init "{}" GXS true
 {
   "ref_block_num": 9545,
   "ref_block_prefix": 3376372472,
@@ -451,8 +467,8 @@ call_contract yanwankun-test gxcexchangec null init "{}" GXS true
   ]
 }
 //初始化后表得配置如下：
-unlocked >>> get_table_rows gxcexchangec sysconfig 0 100 100
-get_table_rows gxcexchangec sysconfig 0 100 100
+unlocked >>> get_table_rows exchangeyan sysconfig 0 100 100
+get_table_rows exchangeyan sysconfig 0 100 100
 {
   "rows": [{
       "id": 0,
@@ -479,8 +495,8 @@ get_table_rows gxcexchangec sysconfig 0 100 100
 ``````
 ## 平台储值用户可以购买平台币
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec {"amount":20000000,"asset_id":1.3.18} ptdeposite "{}" GXS true
-call_contract yanwankun-test gxcexchangec {"amount":20000000,"asset_id":1.3.18} ptdeposite "{}" GXS true
+unlocked >>> call_contract yanwankun-test exchangeyan {"amount":20000000,"asset_id":1.3.18} ptdeposite "{}" GXS true
+call_contract yanwankun-test exchangeyan {"amount":20000000,"asset_id":1.3.18} ptdeposite "{}" GXS true
 {
   "ref_block_num": 9759,
   "ref_block_prefix": 3330103420,
@@ -508,22 +524,21 @@ call_contract yanwankun-test gxcexchangec {"amount":20000000,"asset_id":1.3.18} 
     "2062f372a07c8238170bc85097b77c512d5c2a8b725cb38235d32a58d67b24c6654760b7220db351455f2af080535ddc51cd07d352b506d294479aa261478133e0"
   ]
 }
-unlocked >>> call_contract yanwankun-test gxcexchangec {"amount":50000000,"asset_id":1.3.16} ptdeposite "{}" GXS true 
-call_contract yanwankun-test gxcexchangec {"amount":50000000,"asset_id":1.3.16} ptdeposite "{}" GXS true
+call_contract yanwankun-test exchangeyan {"amount":20000000,"asset_id":1.3.16} ptdeposite "{}" GXS true 
 {
-  "ref_block_num": 9803,
-  "ref_block_prefix": 876221636,
-  "expiration": "2018-12-13T13:16:06",
+  "ref_block_num": 28407,
+  "ref_block_prefix": 3476801560,
+  "expiration": "2018-12-14T06:07:27",
   "operations": [[
       75,{
         "fee": {
-          "amount": 100,
+          "amount": 2756,
           "asset_id": "1.3.1"
         },
         "account": "1.2.980",
-        "contract_id": "1.2.1117",
+        "contract_id": "1.2.1149",
         "amount": {
-          "amount": 50000000,
+          "amount": 20000000,
           "asset_id": "1.3.16"
         },
         "method_name": "ptdeposite",
@@ -534,19 +549,35 @@ call_contract yanwankun-test gxcexchangec {"amount":50000000,"asset_id":1.3.16} 
   ],
   "extensions": [],
   "signatures": [
-    "206d32442ef427d2128e6b350a6df8dbd5f0def754362dd633a9e459cd6a4deb90420dfa221d7d9be9ce21032d2d434b47e02587465376723becf88597783ac411"
+    "206e5d6d36fcebc63c3eaab29872a8f85afd7897dd1851110515610f70268b60ed25447442bb37af8b3b5d597e669a921bf83d50eb5b6c1b438489f33ff7d3dfe8"
   ]
 }
-
-// todo 数据查询不出来待解决
-get_table_rows gxcexchangec pledge 0 10
+unlocked >>> get_table_rows exchangeyan pledge 0 10
+get_table_rows exchangeyan pledge 0 10
+{
+  "rows": [{
+      "id": 0,
+      "amount": {
+        "amount": 20000000,
+        "asset_id": 18
+      }
+    },{
+      "id": 1,
+      "amount": {
+        "amount": 20000000,
+        "asset_id": 16
+      }
+    }
+  ],
+  "more": false
+}
 ``````
 #第二部分用户使用
 ## 买方使用
 ### 存储GXC
 ``````
-unlocked >>> call_contract yanwankun-test-1 gxcexchangec {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
-call_contract yanwankun-test-1 gxcexchangec {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
+unlocked >>> call_contract yanwankun-test-1 exchangeyan {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
+call_contract yanwankun-test-1 exchangeyan {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
 {
   "ref_block_num": 25580,
   "ref_block_prefix": 2851635219,
@@ -577,8 +608,8 @@ call_contract yanwankun-test-1 gxcexchangec {"amount":2000000,"asset_id":1.3.1} 
 ``````
 ### 购买平台币
 ``````
-unlocked >>> call_contract yanwankun-test-1 gxcexchangec {"amount":10000000,"asset_id":1.3.16} buyptcoin "{}" GXS true
-call_contract yanwankun-test-1 gxcexchangec {"amount":10000000,"asset_id":1.3.16} buyptcoin "{}" GXS true
+unlocked >>> call_contract yanwankun-test-1 exchangeyan {"amount":10000000,"asset_id":1.3.16} buyptcoin "{}" GXS true
+call_contract yanwankun-test-1 exchangeyan {"amount":10000000,"asset_id":1.3.16} buyptcoin "{}" GXS true
 {
   "ref_block_num": 25223,
   "ref_block_prefix": 817982319,
@@ -607,14 +638,100 @@ call_contract yanwankun-test-1 gxcexchangec {"amount":10000000,"asset_id":1.3.16
   ]
 }
 // todo 数据查询不出来待解决
-get_table_rows gxcexchangec account 1116 10
+get_table_rows exchangeyan account 1120 10
 ``````
 ### 挂一个买单，购买5个GXC 价格 10YTSYTS/1GXC
-call_contract yanwankun-test-1 gxcexchangec null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":500000}, \"price\": 10}" GXC true
+``````
+unlocked >>> call_contract yanwankun-test-1 exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":500000}, \"price\": 10}" GXC true
+call_contract yanwankun-test-1 exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":500000}, \"price\": 10}" GXC true
+{
+  "ref_block_num": 28499,
+  "ref_block_prefix": 1191442325,
+  "expiration": "2018-12-14T06:12:39",
+  "operations": [[
+      75,{
+        "fee": {
+          "amount": 10725,
+          "asset_id": "1.3.1"
+        },
+        "account": "1.2.1121",
+        "contract_id": "1.2.1149",
+        "method_name": "pendingorder",
+        "data": "0120a107000000000001000000000000000a00000000000000",
+        "extensions": []
+      }
+    ]
+  ],
+  "extensions": [],
+  "signatures": [
+    "200f529cf66ad7e52e3960347243b4461c8d45e729f57796ede00313f015f094d9147aefb4c1035509671d64a2a650fc91aab7f931fc14dba2ab78e19a252a5ae3"
+  ]
+}
+unlocked >>> get_table_rows exchangeyan buyorder 0 100 100
+get_table_rows exchangeyan buyorder 0 100 100
+{
+  "rows": [{
+      "id": 0,
+      "price": 10,
+      "quantity": {
+        "amount": 500000,
+        "asset_id": 1
+      },
+      "buyer": 1121,
+      "order_time": 1544767932
+    }
+  ],
+  "more": false
+}
+``````
+### 用另一个账户去挂一个卖单，购买10个GXC 价格 11YTSYTS/1GXC
+``````
+unlocked >>> call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":1100000}, \"price\": 11}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":1100000}, \"price\": 11}" GXC true
+{
+  "ref_block_num": 28689,
+  "ref_block_prefix": 4139612065,
+  "expiration": "2018-12-14T06:23:15",
+  "operations": [[
+      75,{
+        "fee": {
+          "amount": 10725,
+          "asset_id": "1.3.1"
+        },
+        "account": "1.2.980",
+        "contract_id": "1.2.1149",
+        "method_name": "pendingorder",
+        "data": "02e0c810000000000001000000000000000b00000000000000",
+        "extensions": []
+      }
+    ]
+  ],
+  "extensions": [],
+  "signatures": [
+    "20094637f4abd45b5dee4eb7d7c63c879f5095c108ee1f9ffb209ad22369ae93fa29bf64c3ee12e3ecdc188e2079893d60aa04a9a532f9944e45e5158f16d7cdbd"
+  ]
+}
+unlocked >>> get_table_rows exchangeyan sellorder 0 10 100                                                                                                          
+get_table_rows exchangeyan sellorder 0 10 100
+{
+  "rows": [{
+      "id": 0,
+      "price": 11,
+      "quantity": {
+        "amount": 1100000,
+        "asset_id": 1
+      },
+      "seller": 980,
+      "order_time": 1544768565
+    }
+  ],
+  "more": false
+}
+``````
 ### 存钱
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec {"amount":2000000,"asset_id":1.3.16} deposit "{}" GXS true
-call_contract yanwankun-test gxcexchangec {"amount":200,"asset_id":1.3.16} deposit "{}" GXS true
+unlocked >>> call_contract yanwankun-test exchangeyan {"amount":2000000,"asset_id":1.3.16} deposit "{}" GXS true
+call_contract yanwankun-test exchangeyan {"amount":200,"asset_id":1.3.16} deposit "{}" GXS true
 {
   "ref_block_num": 39850,
   "ref_block_prefix": 865838005,
@@ -643,12 +760,12 @@ call_contract yanwankun-test gxcexchangec {"amount":200,"asset_id":1.3.16} depos
   ]
 }
 
-call_contract yanwankun-test gxcexchangec {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
+call_contract yanwankun-test exchangeyan {"amount":2000000,"asset_id":1.3.1} deposit "{}" GXS true
 ``````
 ## 取钱
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
-call_contract yanwankun-test gxcexchangec null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
+unlocked >>> call_contract yanwankun-test exchangeyan null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
+call_contract yanwankun-test exchangeyan null withdraw "{\"to_account\":\"yanwankun-test\", \"amount\":{\"asset_id\": 16, \"amount\":55}}" GXS true
 {
   "ref_block_num": 39919,
   "ref_block_prefix": 2878906590,
@@ -676,8 +793,8 @@ call_contract yanwankun-test gxcexchangec null withdraw "{\"to_account\":\"yanwa
 
 ### 挂单 挂一个 以单价 2WKYCOIN/1GXC 购买5个GXC 的买单
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
-call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
+unlocked >>> call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
 {
   "ref_block_num": 43276,
   "ref_block_prefix": 197017848,
@@ -703,45 +820,257 @@ call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":1, \"quan
 }
 
 
-call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":5}, \"price\": 5}" GXC true
-call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":4}, \"price\": 4}" GXC true
-call_contract yanwankun-test gxcexchangec null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":5}, \"price\": 5}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":2, \"quantity\": {\"asset_id\": 1, \"amount\":4}, \"price\": 4}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":2}, \"price\": 5}" GXC true
 ``````
-### 撤销订单
-
+# 撤销订单
+## 买单撤销
 ``````
-unlocked >>> call_contract yanwankun-test gxcexchangec null cancelorder "{\"type\":1, \"id\":1}" GXC true 
-call_contract yanwankun-test gxcexchangec null cancelorder "{\"type\":1, \"id\":1}" GXC true
+unlocked >>> get_table_rows exchangeyan buyorder 0 100 100
+get_table_rows exchangeyan buyorder 0 100 100
 {
-  "ref_block_num": 43852,
-  "ref_block_prefix": 2703412265,
-  "expiration": "2018-12-12T07:40:21",
+  "rows": [{
+      "id": 0,
+      "price": 10,
+      "quantity": {
+        "amount": 500000,
+        "asset_id": 1
+      },
+      "buyer": 1121,
+      "order_time": 1544767932
+    }
+  ],
+  "more": false
+}
+
+unlocked >>> call_contract yanwankun-test-1 exchangeyan null cancelorder "{\"type\":1, \"id\":0}" GXC true
+call_contract yanwankun-test-1 exchangeyan null cancelorder "{\"type\":1, \"id\":0}" GXC true
+{
+  "ref_block_num": 28914,
+  "ref_block_prefix": 1414231029,
+  "expiration": "2018-12-14T06:35:39",
   "operations": [[
       75,{
         "fee": {
-          "amount": 500,
+          "amount": 100,
           "asset_id": "1.3.1"
         },
-        "account": "1.2.980",
-        "contract_id": "1.2.1060",
+        "account": "1.2.1121",
+        "contract_id": "1.2.1149",
         "method_name": "cancelorder",
-        "data": "010100000000000000",
+        "data": "010000000000000000",
         "extensions": []
       }
     ]
   ],
   "extensions": [],
   "signatures": [
-    "1f314685c20de4d0825af2e763526c0ad7b4635c399b1b2254d9bf54f5c198125d6ab2821df08ee1c7f6011b43ddcb353ec7e95a59f346e3b18ce1c38c819be4db"
+    "1f129e8bc346d5380a0674d6c19cf55ded72e954594674a8accabacc26328636660f419edc943b073e60eb3b36fd4c5e615fdc64e9a6ea25e4c7315c911c9dd559"
   ]
 }
+unlocked >>> get_table_rows exchangeyan buyorder 0 100 100
+get_table_rows exchangeyan buyorder 0 100 100
+{
+  "rows": [],
+  "more": false
+}
+unlocked >>> 
 
 ``````
+## 卖单撤销
+``````
+unlocked >>> get_table_rows exchangeyan sellorder 0 100 100
+get_table_rows exchangeyan sellorder 0 100 100
+{
+  "rows": [{
+      "id": 0,
+      "price": 11,
+      "quantity": {
+        "amount": 1100000,
+        "asset_id": 1
+      },
+      "seller": 980,
+      "order_time": 1544768565
+    },{
+      "id": 1,
+      "price": 11,
+      "quantity": {
+        "amount": 1100000,
+        "asset_id": 1
+      },
+      "seller": 1121,
+      "order_time": 1544769132
+    }
+  ],
+  "more": false
+}
 
+unlocked >>> call_contract yanwankun-test exchangeyan null cancelorder "{\"type\":2, \"id\":0}" GXC true   
+call_contract yanwankun-test exchangeyan null cancelorder "{\"type\":2, \"id\":0}" GXC true
+{
+  "ref_block_num": 28984,
+  "ref_block_prefix": 2585806771,
+  "expiration": "2018-12-14T06:39:27",
+  "operations": [[
+      75,{
+        "fee": {
+          "amount": 100,
+          "asset_id": "1.3.1"
+        },
+        "account": "1.2.980",
+        "contract_id": "1.2.1149",
+        "method_name": "cancelorder",
+        "data": "020000000000000000",
+        "extensions": []
+      }
+    ]
+  ],
+  "extensions": [],
+  "signatures": [
+    "20712605f6dc54032dd6463cff611b8b2b91e39dc4989d6eadb700086ec135374070086d093d55fa0290a9d05ead41dd7618b3b364eda2d202749f112935b6d51e"
+  ]
+}
+unlocked >>> get_table_rows exchangeyan sellorder 0 100 100
+get_table_rows exchangeyan sellorder 0 100 100
+{
+  "rows": [{
+      "id": 1,
+      "price": 11,
+      "quantity": {
+        "amount": 1100000,
+        "asset_id": 1
+      },
+      "seller": 1121,
+      "order_time": 1544769132
+    }
+  ],
+  "more": false
+}
+``````
+
+#交易成交
+##
+``````
+查看卖单
+unlocked >>> get_table_rows exchangeyan sellorder 0 100 100
+get_table_rows exchangeyan sellorder 0 100 100
+{
+  "rows": [{
+      "id": 1,
+      "price": 11,
+      "quantity": {
+        "amount": 1000000,
+        "asset_id": 1
+      },
+      "seller": 1121,
+      "order_time": 1544769132
+    }
+  ],
+  "more": false
+}
+##还剩余10个gxc，售价11，我们可以以价格12去买5个
+unlocked >>> call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":500000}, \"price\": 12}" GXC true
+call_contract yanwankun-test exchangeyan null pendingorder "{\"type\":1, \"quantity\": {\"asset_id\": 1, \"amount\":500000}, \"price\": 12}" GXC true
+{
+  "ref_block_num": 29181,
+  "ref_block_prefix": 3595445597,
+  "expiration": "2018-12-14T06:50:27",
+  "operations": [[
+      75,{
+        "fee": {
+          "amount": 10881,
+          "asset_id": "1.3.1"
+        },
+        "account": "1.2.980",
+        "contract_id": "1.2.1149",
+        "method_name": "pendingorder",
+        "data": "0120a107000000000001000000000000000c00000000000000",
+        "extensions": []
+      }
+    ]
+  ],
+  "extensions": [],
+  "signatures": [
+    "204a2fb1dc6a7182f96aed0fdbcd78bd8442eba18ceef5ec8199a4662f691c5ec3012a5cd8e8c35c8ab53949bbd4d7d25131f8e76a26a9937e1a6eb6d3a57dca32"
+  ]
+}
+## 交易过后因为部分匹配买单可以完成，卖单还有部分未成交，继续存在
+unlocked >>> get_table_rows exchangeyan sellorder 0 100 100
+get_table_rows exchangeyan sellorder 0 100 100
+{
+  "rows": [{
+      "id": 1,
+      "price": 11,
+      "quantity": {
+        "amount": 500000,
+        "asset_id": 1
+      },
+      "seller": 1121,
+      "order_time": 1544769132
+    }
+  ],
+  "more": false
+}
+## 因为有差价，我们可以查看系统收益 （这个是系统得收益流水，合约得所有着可以提取走得）
+unlocked >>> get_table_rows exchangeyan profit 0 100 100
+get_table_rows exchangeyan profit 0 100 100
+{
+  "rows": [{
+      "id": 0,
+      "profit_asset": {
+        "amount": 200000,
+        "asset_id": 18
+      },
+      "profit_time": 1544767875
+    },{
+      "id": 1,
+      "profit_asset": {
+        "amount": 200000,
+        "asset_id": 18
+      },
+      "profit_time": 1544768358
+    },{
+      "id": 2,
+      "profit_asset": {
+        "amount": 6,
+        "asset_id": 18
+      },
+      "profit_time": 1544770074
+    },{
+      "id": 3,
+      "profit_asset": {
+        "amount": 99994,
+        "asset_id": 18
+      },
+      "profit_time": 1544770149
+    },{
+      "id": 4,
+      "profit_asset": {
+        "amount": 500000,
+        "asset_id": 18
+      },
+      "profit_time": 1544770197
+    }
+  ],
+  "more": false
+}
+当前系统总收益
+unlocked >>> get_table_rows exchangeyan income 0 100 100
+get_table_rows exchangeyan income 0 100 100
+{
+  "rows": [{
+      "asset_id": 18,
+      "amount": 1000000
+    }
+  ],
+  "more": false
+}
+``````
 ### 列出合约得所有存储表
 ``````
-unlocked >>> get_contract_tables gxcexchangec
-get_contract_tables gxcexchangec
+unlocked >>> get_contract_tables exchangeyan
+get_contract_tables exchangeyan
 [
   "account",
   "profit",
@@ -760,8 +1089,8 @@ unlocked >>>
 
 ## 查询还未匹配得买单
 ``````
-unlocked >>> get_table_rows gxcexchangec account 0 100 100
-get_table_objects gxcexchangec buyorder 0 10 10
+unlocked >>> get_table_rows exchangeyan buyorder 0 100 100
+get_table_objects exchangeyan buyorder 0 10 10
 [{
     "id": 1,
     "price": 5,
@@ -774,18 +1103,18 @@ get_table_objects gxcexchangec buyorder 0 10 10
   }
 ]
 ### 系统账户余额
-get_table_objects gxcexchangec sysconfig 0 10 10
+get_table_objects exchangeyan sysconfig 0 10 10
 ### 还未匹配得卖单
-get_table_objects gxcexchangec sellorder 0 10 10
+get_table_objects exchangeyan sellorder 0 10 10
 ### 总收益
-get_table_objects gxcexchangec income 15 19 10
+get_table_objects exchangeyan income 15 19 10
 ### 收益表
-get_table_objects gxcexchangec profit 0 10 10
+get_table_objects exchangeyan profit 0 10 10
 ### 匹配完成订单
-get_table_objects gxcexchangec dealorder 0 10 10
+get_table_objects exchangeyan dealorder 0 10 10
 ### 充值记录
-get_table_objects gxcexchangec depositlog 0 10 10
+get_table_objects exchangeyan depositlog 0 10 10
 ### 体现记录
-get_table_objects gxcexchangec withdrawlog 15 19 10
+get_table_objects exchangeyan withdrawlog 15 19 10
 ``````
 

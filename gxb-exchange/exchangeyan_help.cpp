@@ -1,10 +1,10 @@
-#include "gxcexchangec.hpp"
+#include "exchangeyan.hpp"
 
 using namespace graphene;
 
 
 // 把出价高和创建时间早得放在前面
-bool buyoredercomp(const gxcexchangec::buyorder &a, const gxcexchangec::buyorder &b){
+bool buyoredercomp(const exchangeyan::buyorder &a, const exchangeyan::buyorder &b){
     if (a.price > b.price) {
         return true;
     } else if (a.price < b.price) {
@@ -17,7 +17,7 @@ bool buyoredercomp(const gxcexchangec::buyorder &a, const gxcexchangec::buyorder
 }
 
 // 把售价低和创建时间早得放在前面
-bool selloredercomp(const gxcexchangec::sellorder &a, const gxcexchangec::sellorder &b){
+bool selloredercomp(const exchangeyan::sellorder &a, const exchangeyan::sellorder &b){
     if (a.price < b.price) {
         return true;
     } else if (a.price > b.price) {
@@ -29,18 +29,18 @@ bool selloredercomp(const gxcexchangec::sellorder &a, const gxcexchangec::sellor
     }
 }
 
-void gxcexchangec::authverify(uint64_t sender) {
+void exchangeyan::authverify(uint64_t sender) {
     uint64_t profit_account_id = get_sysconfig(profit_account_id_ID);
     graphene_assert(sender == profit_account_id, "越权操作");
 }
 
-void gxcexchangec::statusverify() {
+void exchangeyan::statusverify() {
     uint64_t platform_status = get_sysconfig(platform_status_ID);
     graphene_assert(platform_status == platform_un_lock_status_value, "平台已锁定，暂时不能交易");
 }
 
 // 增加保证金
-void gxcexchangec::add_pledge(uint64_t id, contract_asset amount){
+void exchangeyan::add_pledge(uint64_t id, contract_asset amount){
     auto itr = pledges.find(id);
     if (itr == pledges.end()) {
         pledges.emplace(0, [&](auto &o) {
@@ -56,7 +56,7 @@ void gxcexchangec::add_pledge(uint64_t id, contract_asset amount){
 }
 
 // 减少保证金
-void gxcexchangec::sub_pledge(uint64_t id, contract_asset amount){
+void exchangeyan::sub_pledge(uint64_t id, contract_asset amount){
     auto itr = pledges.find(id);
     graphene_assert(itr != pledges.end(), "保证金相关资金不存在");
     graphene_assert(amount.asset_id == itr->amount.asset_id, "保证金资金添加错误");
@@ -67,7 +67,7 @@ void gxcexchangec::sub_pledge(uint64_t id, contract_asset amount){
 }
 
 // 增加余额
-void gxcexchangec::add_balances(uint64_t user, contract_asset quantity){
+void exchangeyan::add_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     if (it_user == accounts.end()) {
@@ -98,7 +98,7 @@ void gxcexchangec::add_balances(uint64_t user, contract_asset quantity){
 
 
 // 减少余额
-void gxcexchangec::sub_balances(uint64_t user, contract_asset quantity){
+void exchangeyan::sub_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "账户记录不存在");
@@ -118,7 +118,7 @@ void gxcexchangec::sub_balances(uint64_t user, contract_asset quantity){
 }
 
 // 增加余额
-void gxcexchangec::add_balances_lock(uint64_t user, contract_asset quantity){
+void exchangeyan::add_balances_lock(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
 
@@ -143,7 +143,7 @@ void gxcexchangec::add_balances_lock(uint64_t user, contract_asset quantity){
 }
 
 // 减少余额
-void gxcexchangec::sub_balances_lock(uint64_t user, contract_asset quantity){
+void exchangeyan::sub_balances_lock(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "账户记录不存在");
@@ -166,7 +166,7 @@ void gxcexchangec::sub_balances_lock(uint64_t user, contract_asset quantity){
 /**
  * 内部转账
  */
- void gxcexchangec::exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity) {
+ void exchangeyan::exchange_transfer(uint64_t from, uint64_t to, contract_asset quantity) {
     auto it_from = accounts.find(from);
     graphene_assert(it_from != accounts.end(), "转账发送者账户记录不存在");
 
@@ -180,7 +180,7 @@ void gxcexchangec::sub_balances_lock(uint64_t user, contract_asset quantity){
 /**
  * 内部lock转转实现(从lock账户到balance) 
  */ 
-void gxcexchangec::transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity) {
+void exchangeyan::transfer_from_lock(uint64_t from, uint64_t to, contract_asset quantity) {
     auto it_from = accounts.find(from);
     graphene_assert(it_from != accounts.end(), "转账发送者账户记录不存在");
 
@@ -193,7 +193,7 @@ void gxcexchangec::transfer_from_lock(uint64_t from, uint64_t to, contract_asset
 }
 
 // balance转账到lock账户
-void gxcexchangec::balance_lock(uint64_t user, contract_asset quantity) {
+void exchangeyan::balance_lock(uint64_t user, contract_asset quantity) {
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "锁定资产发送者账户记录不存在");
 
@@ -202,7 +202,7 @@ void gxcexchangec::balance_lock(uint64_t user, contract_asset quantity) {
 
 }
 
-void gxcexchangec::unlock_lock_balance(uint64_t user, contract_asset quantity) {
+void exchangeyan::unlock_lock_balance(uint64_t user, contract_asset quantity) {
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "锁定资产发送者账户记录不存在");
 
@@ -211,7 +211,7 @@ void gxcexchangec::unlock_lock_balance(uint64_t user, contract_asset quantity) {
 }
 
 
-void gxcexchangec::add_income(contract_asset profit) {
+void exchangeyan::add_income(contract_asset profit) {
     graphene_assert(profit.amount > 0, "资金操作不能为负数");
     auto income_asset = incomes.find(profit.asset_id);
     if (income_asset == incomes.end()) {
@@ -227,7 +227,7 @@ void gxcexchangec::add_income(contract_asset profit) {
     }
 }
 
-void gxcexchangec::sub_income(contract_asset profit) {
+void exchangeyan::sub_income(contract_asset profit) {
     graphene_assert(profit.amount > 0, "资金操作不能为负数");
     auto income_asset = incomes.find(profit.asset_id);
     graphene_assert(income_asset != incomes.end(), "当前收益没有对应得资产");
@@ -239,7 +239,7 @@ void gxcexchangec::sub_income(contract_asset profit) {
     
 } 
 
-void gxcexchangec::update_sell_order(uint64_t id, contract_asset quantity) {
+void exchangeyan::update_sell_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = sellorders.find(id);
@@ -254,7 +254,7 @@ void gxcexchangec::update_sell_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-void gxcexchangec::update_buy_order(uint64_t id, contract_asset quantity) {
+void exchangeyan::update_buy_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = buyorders.find(id);
@@ -269,7 +269,7 @@ void gxcexchangec::update_buy_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-uint64_t gxcexchangec::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
+uint64_t exchangeyan::insert_sell_order(uint64_t seller, contract_asset quantity, int64_t price) {
     uint64_t pk = sellorders.available_primary_key();
     print("sell order pk = ", pk);
     sellorders.emplace(0, [&](auto &a_sell_order) {
@@ -282,7 +282,7 @@ uint64_t gxcexchangec::insert_sell_order(uint64_t seller, contract_asset quantit
     return pk;
 }
 
-uint64_t gxcexchangec::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
+uint64_t exchangeyan::insert_buy_order(uint64_t buyer, contract_asset quantity, int64_t price) {
     uint64_t pk = buyorders.available_primary_key();
     print("buyer order pk = ", pk);
     buyorders.emplace(0, [&](auto &a_buy_order) {
@@ -295,7 +295,7 @@ uint64_t gxcexchangec::insert_buy_order(uint64_t buyer, contract_asset quantity,
     return pk;
 }
 
-uint64_t gxcexchangec::insert_profit(contract_asset profit) {
+uint64_t exchangeyan::insert_profit(contract_asset profit) {
     uint64_t pk = profits.available_primary_key();
     print("profits pk = ", pk);
     profits.emplace(0, [&](auto &a_profit) {
@@ -311,7 +311,7 @@ uint64_t gxcexchangec::insert_profit(contract_asset profit) {
 }
 
 
-uint64_t gxcexchangec::insert_dealorder(int64_t price, contract_asset quantity) {
+uint64_t exchangeyan::insert_dealorder(int64_t price, contract_asset quantity) {
     uint64_t pk = dealorders.available_primary_key();
     print("dealorders pk = ", pk);
     dealorders.emplace(0, [&](auto &a_dealorder) {
@@ -327,7 +327,7 @@ uint64_t gxcexchangec::insert_dealorder(int64_t price, contract_asset quantity) 
     return pk;
 }
 
-uint64_t gxcexchangec::insert_depositlog(uint64_t user, contract_asset amount) {
+uint64_t exchangeyan::insert_depositlog(uint64_t user, contract_asset amount) {
     uint64_t pk = depositlogs.available_primary_key();
     print("depositlogs pk = ", pk);
     depositlogs.emplace(0, [&](auto &a_depositlog) {
@@ -342,7 +342,7 @@ uint64_t gxcexchangec::insert_depositlog(uint64_t user, contract_asset amount) {
     }
     return pk;
 }
-uint64_t gxcexchangec::insert_withdrawlog(uint64_t user, contract_asset amount) {
+uint64_t exchangeyan::insert_withdrawlog(uint64_t user, contract_asset amount) {
     uint64_t pk = withdrawlogs.available_primary_key();
     print("withdrawlogs pk = ", pk);
     withdrawlogs.emplace(0, [&](auto &a_withdrawlog) {
@@ -358,7 +358,7 @@ uint64_t gxcexchangec::insert_withdrawlog(uint64_t user, contract_asset amount) 
     return pk;
 }
 
-void gxcexchangec::insert_sysconfig(uint64_t id, uint64_t value) {
+void exchangeyan::insert_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
     graphene_assert(it == sysconfigs.end(), "配置信息已存在");
     sysconfigs.emplace(0, [&](auto &a_config) {
@@ -367,7 +367,7 @@ void gxcexchangec::insert_sysconfig(uint64_t id, uint64_t value) {
     });
 }
 
-void gxcexchangec::update_sysconfig(uint64_t id, uint64_t value) {
+void exchangeyan::update_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
     graphene_assert(it != sysconfigs.end(), "配置信息不存在");
 
@@ -383,13 +383,13 @@ void gxcexchangec::update_sysconfig(uint64_t id, uint64_t value) {
     });
 }
 
-uint64_t gxcexchangec::get_sysconfig(uint64_t id) {
+uint64_t exchangeyan::get_sysconfig(uint64_t id) {
     auto it = sysconfigs.find(id);
     graphene_assert(it != sysconfigs.end(), "配置信息不存在");
     return it->value;
 }
 
-void gxcexchangec::delete_sysconfig() {
+void exchangeyan::delete_sysconfig() {
     for(auto itr = sysconfigs.begin(); itr != sysconfigs.end();) {
         itr = sysconfigs.erase(itr);
     }
@@ -397,7 +397,7 @@ void gxcexchangec::delete_sysconfig() {
 
 
 // 当收到卖单请求时得处理方法
-void gxcexchangec::sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller) {
+void exchangeyan::sell_order_fun(contract_asset quantity, int64_t price, uint64_t seller) {
     auto idx = buyorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
@@ -428,12 +428,12 @@ void gxcexchangec::sell_order_fun(contract_asset quantity, int64_t price, uint64
     for (buyorder _buyorder : match_buy_orders) { 
         if (quantity.amount > 0) {
             if (_buyorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price, platform_core_asset_id_VALUE};
+                contract_asset trade_plateform_asset{ _buyorder.quantity.amount * price / asset_recision, platform_core_asset_id_VALUE};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, _buyorder.quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price), platform_core_asset_id_VALUE};
+                    contract_asset profit{ _buyorder.quantity.amount * (_buyorder.price - price) / asset_recision , platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -442,12 +442,12 @@ void gxcexchangec::sell_order_fun(contract_asset quantity, int64_t price, uint64
                 insert_dealorder(_buyorder.price, _buyorder.quantity);
                 quantity -= _buyorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * price, platform_core_asset_id_VALUE};
+                contract_asset trade_plateform_asset{ quantity.amount * price / asset_recision, platform_core_asset_id_VALUE};
                 transfer_from_lock(_buyorder.buyer, seller, trade_plateform_asset);
                 exchange_transfer(seller, _buyorder.buyer, quantity);
 
                 if (_buyorder.price > price) {
-                    contract_asset profit{ quantity.amount * (_buyorder.price - price), platform_core_asset_id_VALUE};
+                    contract_asset profit{ quantity.amount * (_buyorder.price - price) / asset_recision , platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -468,7 +468,7 @@ void gxcexchangec::sell_order_fun(contract_asset quantity, int64_t price, uint64
 }
 
 // 收到买单得处理
-void gxcexchangec::buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer) {
+void exchangeyan::buy_order_fun(contract_asset quantity, int64_t price, uint64_t buyer) {
     auto idx = sellorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
@@ -490,7 +490,7 @@ void gxcexchangec::buy_order_fun(contract_asset quantity, int64_t price, uint64_
 
     if (match_sell_orders.size() == 0) {
         insert_buy_order(buyer, quantity, price);
-        contract_asset lock_asset{ quantity.amount * price, platform_core_asset_id_VALUE};
+        contract_asset lock_asset{ quantity.amount * price / asset_recision, platform_core_asset_id_VALUE};
         balance_lock(buyer, lock_asset);
         return;
     }
@@ -500,12 +500,12 @@ void gxcexchangec::buy_order_fun(contract_asset quantity, int64_t price, uint64_
     for (sellorder _sellorder : match_sell_orders) { 
         if (quantity.amount > 0) {
             if (_sellorder.quantity.amount <= quantity.amount) {
-                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price, platform_core_asset_id_VALUE};
+                contract_asset trade_plateform_asset{ _sellorder.quantity.amount * _sellorder.price / asset_recision, platform_core_asset_id_VALUE};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, _sellorder.quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price), platform_core_asset_id_VALUE};
+                    contract_asset profit{ _sellorder.quantity.amount * (price - _sellorder.price) / asset_recision, platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -514,12 +514,12 @@ void gxcexchangec::buy_order_fun(contract_asset quantity, int64_t price, uint64_
                 insert_dealorder(price, _sellorder.quantity);
                 quantity -= _sellorder.quantity;
             } else {
-                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price, platform_core_asset_id_VALUE};
+                contract_asset trade_plateform_asset{ quantity.amount * _sellorder.price / asset_recision, platform_core_asset_id_VALUE};
                 exchange_transfer(buyer, _sellorder.seller, trade_plateform_asset);
                 transfer_from_lock(_sellorder.seller, buyer, quantity);
 
                 if (_sellorder.price < price) {
-                    contract_asset profit{ quantity.amount * (price - _sellorder.price), platform_core_asset_id_VALUE};
+                    contract_asset profit{ quantity.amount * (price - _sellorder.price) / asset_recision , platform_core_asset_id_VALUE};
                     insert_profit(profit);
                     add_income(profit);
                 }
@@ -539,7 +539,7 @@ void gxcexchangec::buy_order_fun(contract_asset quantity, int64_t price, uint64_
     }
 }
 
-void gxcexchangec::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
+void exchangeyan::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     auto it = sellorders.find(id);
     graphene_assert(it != sellorders.end(), "卖单信息不存在");
     graphene_assert(it->seller == seller, "无权操作");
@@ -548,19 +548,19 @@ void gxcexchangec::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     sellorders.erase(it);
 }
 
-void gxcexchangec::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
+void exchangeyan::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     auto it = buyorders.find(id);
     graphene_assert(it != buyorders.end(), "买单信息不存在");
     graphene_assert(it->buyer == buyer, "无权操作");
 
-    contract_asset buy_asset{ it->quantity.amount * it->price, platform_core_asset_id_VALUE};
+    contract_asset buy_asset{ it->quantity.amount * it->price / asset_recision, platform_core_asset_id_VALUE};
     unlock_lock_balance(buyer, buy_asset);
     buyorders.erase(it);
 }
 
 
 // 数据删除
-void gxcexchangec::delete_profit(uint64_t deletecount) {
+void exchangeyan::delete_profit(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = profits.begin(); itr != profits.end();) {
         itr = profits.erase(itr);
@@ -571,7 +571,7 @@ void gxcexchangec::delete_profit(uint64_t deletecount) {
     }
 }
 
-void gxcexchangec::delete_depositlog(uint64_t deletecount) {
+void exchangeyan::delete_depositlog(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = depositlogs.begin(); itr != depositlogs.end();) {
         itr = depositlogs.erase(itr);
@@ -582,7 +582,7 @@ void gxcexchangec::delete_depositlog(uint64_t deletecount) {
     }
 }
 
-void gxcexchangec::delete_withdrawlog(uint64_t deletecount) {
+void exchangeyan::delete_withdrawlog(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = withdrawlogs.begin(); itr != withdrawlogs.end();) {
         itr = withdrawlogs.erase(itr);
@@ -593,7 +593,7 @@ void gxcexchangec::delete_withdrawlog(uint64_t deletecount) {
     }
 }
 
-void gxcexchangec::delete_dealorder(uint64_t deletecount) {
+void exchangeyan::delete_dealorder(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = dealorders.begin(); itr != dealorders.end();) {
         itr = dealorders.erase(itr);
@@ -604,7 +604,7 @@ void gxcexchangec::delete_dealorder(uint64_t deletecount) {
     }
 }
 
-void gxcexchangec::ptcoin_lock() {
+void exchangeyan::ptcoin_lock() {
     auto itr = pledges.find(plateform_deposite_gxc_ID);
     graphene_assert(itr != pledges.end(), "保证金相关资金不存在");
     graphene_assert(itr->amount.asset_id == ptcoin_trade_coin_id, "保证金资金出错");
@@ -612,7 +612,7 @@ void gxcexchangec::ptcoin_lock() {
     if (itr->amount.amount < ptcoin_lock_not_all_min) {
         transfer_ammount = itr->amount.amount;
     } else {
-        transfer_ammount = (itr->amount.amount / 100) * 20;
+        transfer_ammount = (itr->amount.amount / 100) * ptcoin_lock_ratio;
     }
 
     contract_asset lock_amount{transfer_ammount, ptcoin_trade_coin_id};
@@ -620,7 +620,7 @@ void gxcexchangec::ptcoin_lock() {
     add_pledge(plateform_deposite_lock_gxc_ID, lock_amount);
 }
 
-void gxcexchangec::delete_pledge(){
+void exchangeyan::delete_pledge(){
     // 删除所有的账户
     uint64_t profit_account_id = get_sysconfig(profit_account_id_ID);
     for(auto itr = pledges.begin(); itr != pledges.end();) {

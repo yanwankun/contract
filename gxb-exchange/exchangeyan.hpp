@@ -32,8 +32,8 @@ const uint64_t once_delete_count_VALUE = 2; //当表得记录达到最大条目�
 
 // 保证金相关配置
 const uint64_t ptcoin_trade_coin_id = 16; //能够购买和卖出平台得可交易币得id WKYCOIN
-const int64_t ptcoin_ratio = 20; //平台币和gxc得兑换比率 这个不可更改
-const uint64_t ptcoin_trade_fee_ratio = 1; //购买和卖出平台币得手续费
+const int64_t  ptcoin_ratio = 20; //平台币和gxc得兑换比率 这个不可更改
+const uint64_t ptcoin_trade_fee_ratio = 1; //购买和卖出平台币得手续费百分比
 const uint64_t ptcoin_trade_fee_min = 40000; //购买和卖出平台币得最小手续费
 const uint64_t ptcoin_trade_fee_max = 200000; //购买和卖出平台币得最大手续费
 const uint64_t plateform_deposite_platecoin_ID = 0; //平台的平台币 这个可以提走
@@ -42,11 +42,12 @@ const uint64_t plateform_deposite_lock_gxc_ID = 2; //平台锁定的gxc资产id 
 
 const uint64_t ptcoin_lock_not_all_min = 100000000; //当平台保证金小于这个数目(1000GXC)时,
 const uint64_t ptcoin_lock_ratio = 20; //保证金锁定比率
+const uint64_t asset_recision = 100000;
 
-class gxcexchangec : public contract
+class exchangeyan : public contract
 {
   public:
-    gxcexchangec(uint64_t account_id)
+    exchangeyan(uint64_t account_id)
         : contract(account_id)
         , accounts(_self, _self)
         , buyorders(_self, _self)
