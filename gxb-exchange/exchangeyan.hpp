@@ -113,7 +113,7 @@ class exchangeyan : public contract
 
         uint64_t primary_key() const { return owner; }
 
-        GRAPHENE_SERIALIZE(account, (owner)(balances))
+        GRAPHENE_SERIALIZE(account, (owner)(balances)(lock_balances))
     };
 
     // 收入记录
