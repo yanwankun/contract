@@ -36,10 +36,10 @@ const uint64_t asset_recision = 100000;
 const uint64_t exchange_fee = 3; // 交易得手续费 （分子）
 const uint64_t exchange_fee_base_amount = 1000; // 交易手续非得基数（分母）
 
-class exchangeywk : public contract
+class exchangeywkt : public contract
 {
   public:
-    exchangeywk(uint64_t account_id)
+    exchangeywkt(uint64_t account_id)
         : contract(account_id)
         , accounts(_self, _self)
         , orders(_self, _self)
@@ -57,13 +57,22 @@ class exchangeywk : public contract
     void init();
 
     // 配置更新
+    //@abi action
     void updateconfig(uint64_t id, uint64_t value);
 
     // 添加支持得资产
+    //@abi action
     void addcointype(uint64_t id);
 
     // 配置更新
+    //@abi action
     void upcointype(uint64_t id, uint64_t value);
+
+    //@abi action
+    void fetchprofit(std::string to_account, contract_asset amount);
+
+    //@abi action
+    void deleteall();
 
     // 限价挂单交易
     //@abi action
@@ -247,7 +256,7 @@ class exchangeywk : public contract
     void statusverify();
     void verifycoinstatus(uint64_t id, uint8_t ordertype);
 
-    uint64_t insert_profit(contract_asset profit);
+    uint64_t insert_profit(int64_t profit);
 
     void delete_dealorder(uint64_t deletecount);
     void delete_profit(uint64_t deletecount);

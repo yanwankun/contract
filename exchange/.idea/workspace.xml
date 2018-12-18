@@ -12,12 +12,32 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="exchangeywk_op.md" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/exchangeywk_op.md">
+      <file leaf-file-name="exchangeywkt.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/exchangeywkt.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="exchangeywkt_help.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/exchangeywkt_help.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="exchangeywkt_op.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/exchangeywkt_op.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="820">
-                <caret line="192" column="0" lean-forward="false" selection-start-line="192" selection-start-column="0" selection-end-line="192" selection-end-column="40" />
+              <first_editor relative-caret-position="4753">
+                <caret line="336" column="1" lean-forward="true" selection-start-line="336" selection-start-column="1" selection-end-line="336" selection-end-column="1" />
                 <folding />
               </first_editor>
               <second_editor />
@@ -36,6 +56,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/exchangeywk_op.md" />
+        <option value="$PROJECT_DIR$/exchangeywkt_op.md" />
       </list>
     </option>
   </component>
@@ -201,12 +222,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1545113712360</updated>
-      <workItem from="1545113713781" duration="2907000" />
+      <workItem from="1545113713781" duration="6303000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2907000" />
+    <option name="totallyTimeSpent" value="6303000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="1" />
@@ -256,8 +277,35 @@
     <entry file="file://$PROJECT_DIR$/exchangeywk_op.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="820">
-            <caret line="192" column="0" lean-forward="false" selection-start-line="192" selection-start-column="0" selection-end-line="192" selection-end-column="40" />
+          <first_editor relative-caret-position="592">
+            <caret line="193" column="0" lean-forward="true" selection-start-line="193" selection-start-column="0" selection-end-line="193" selection-end-column="0" />
+            <folding />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/exchangeywkt.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/exchangeywkt_help.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/exchangeywkt_op.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="4753">
+            <caret line="336" column="1" lean-forward="true" selection-start-line="336" selection-start-column="1" selection-end-line="336" selection-end-column="1" />
             <folding />
           </first_editor>
           <second_editor />

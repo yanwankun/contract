@@ -1,10 +1,10 @@
-#include "exchangeywk.hpp"
+#include "exchangeywkt.hpp"
 
 using namespace graphene;
 
 
 // 把出价高和创建时间早得放在前面
-bool buyoredercomp(const exchangeywk::buyorder &a, const exchangeywk::buyorder &b){
+bool buyoredercomp(const exchangeywkt::buyorder &a, const exchangeywkt::buyorder &b){
     if (a.price > b.price) {
         return true;
     } else if (a.price < b.price) {
@@ -17,7 +17,7 @@ bool buyoredercomp(const exchangeywk::buyorder &a, const exchangeywk::buyorder &
 }
 
 // 把售价低和创建时间早得放在前面
-bool selloredercomp(const exchangeywk::sellorder &a, const exchangeywk::sellorder &b){
+bool selloredercomp(const exchangeywkt::sellorder &a, const exchangeywkt::sellorder &b){
     if (a.price < b.price) {
         return true;
     } else if (a.price > b.price) {
@@ -30,7 +30,7 @@ bool selloredercomp(const exchangeywk::sellorder &a, const exchangeywk::sellorde
 }
 
 // 增加余额
-void exchangeywk::add_balances(uint64_t user, contract_asset quantity){
+void exchangeywkt::add_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     if (it_user == accounts.end()) {
@@ -61,7 +61,7 @@ void exchangeywk::add_balances(uint64_t user, contract_asset quantity){
 
 
 // 减少余额
-void exchangeywk::sub_balances(uint64_t user, contract_asset quantity){
+void exchangeywkt::sub_balances(uint64_t user, contract_asset quantity){
     graphene_assert(quantity.amount > 0, "资金操作不能为负数");
     auto it_user = accounts.find(user);
     graphene_assert(it_user != accounts.end(), "账户记录不存在");
@@ -80,7 +80,7 @@ void exchangeywk::sub_balances(uint64_t user, contract_asset quantity){
     
 }
 
-void exchangeywk::update_sell_order(uint64_t id, contract_asset quantity) {
+void exchangeywkt::update_sell_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = sellorders.find(id);
@@ -95,7 +95,7 @@ void exchangeywk::update_sell_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-void exchangeywk::update_buy_order(uint64_t id, contract_asset quantity) {
+void exchangeywkt::update_buy_order(uint64_t id, contract_asset quantity) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = buyorders.find(id);
@@ -110,7 +110,7 @@ void exchangeywk::update_buy_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-uint64_t exchangeywk::insert_sell_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
+uint64_t exchangeywkt::insert_sell_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
     uint64_t pk = sellorders.available_primary_key();
     print("sell order pk = ", pk);
     sellorders.emplace(0, [&](auto &a_sell_order) {
@@ -124,7 +124,7 @@ uint64_t exchangeywk::insert_sell_order(uint64_t order_id, contract_asset quanti
     return pk;
 }
 
-uint64_t exchangeywk::insert_buy_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
+uint64_t exchangeywkt::insert_buy_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
     uint64_t pk = buyorders.available_primary_key();
     print("buyer order pk = ", pk);
     buyorders.emplace(0, [&](auto &a_buy_order) {
@@ -138,7 +138,7 @@ uint64_t exchangeywk::insert_buy_order(uint64_t order_id, contract_asset quantit
     return pk;
 }
 
-uint64_t exchangeywk::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder_id, uint64_t price, contract_asset quantity, uint64_t buyer, uint64_t seller, contract_asset fee) {
+uint64_t exchangeywkt::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder_id, uint64_t price, contract_asset quantity, uint64_t buyer, uint64_t seller, contract_asset fee) {
     uint64_t pk = dealorders.available_primary_key();
     print("dealorders pk = ", pk);
     dealorders.emplace(0, [&](auto &a_deal_order) {
@@ -161,7 +161,7 @@ uint64_t exchangeywk::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder_
     return pk;
 }
 
-uint64_t exchangeywk::insert_order(contract_asset pay_amount, contract_asset amount, uint64_t user, uint8_t order_type, int64_t price, uint8_t status) {
+uint64_t exchangeywkt::insert_order(contract_asset pay_amount, contract_asset amount, uint64_t user, uint8_t order_type, int64_t price, uint8_t status) {
     uint64_t pk = orders.available_primary_key();
     print("orders pk = ", pk);
     orders.emplace(0, [&](auto &a_order) {
@@ -191,7 +191,7 @@ uint64_t exchangeywk::insert_order(contract_asset pay_amount, contract_asset amo
 }
 
 
-void exchangeywk::update_order_sell(uint64_t id, contract_asset quantity, int64_t price) {
+void exchangeywkt::update_order_sell(uint64_t id, contract_asset quantity, int64_t price) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = orders.find(id);
@@ -209,7 +209,7 @@ void exchangeywk::update_order_sell(uint64_t id, contract_asset quantity, int64_
     });
 }
 
-void exchangeywk::update_order_buy(uint64_t id, contract_asset quantity, contract_asset fee, int64_t price) {
+void exchangeywkt::update_order_buy(uint64_t id, contract_asset quantity, contract_asset fee, int64_t price) {
 
     graphene_assert(quantity.amount >= 0, "更新订单金额不能为负数");
     auto it = orders.find(id);
@@ -242,7 +242,7 @@ void exchangeywk::update_order_buy(uint64_t id, contract_asset quantity, contrac
     });
 }
 
-void exchangeywk::end_order(uint64_t id) {
+void exchangeywkt::end_order(uint64_t id) {
     auto it = orders.find(id);
     graphene_assert(it != orders.end(), "订单信息不存在");
     graphene_assert(it->status == order_status_trading , "订单已结束");
@@ -270,7 +270,7 @@ void exchangeywk::end_order(uint64_t id) {
 }
 
 // 当收到卖单请求时得处理方法
-void exchangeywk::sell_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
+void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
 
     auto idx = buyorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
@@ -343,7 +343,7 @@ void exchangeywk::sell_order_fun(uint64_t order_id, contract_asset quantity, int
 }
 
 // 收到买单得处理
-void exchangeywk::buy_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
+void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
     auto idx = sellorders.template get_index<N(asset)>();
     auto match_itr_lower = idx.lower_bound(quantity.asset_id);
     auto match_itr_upper = idx.upper_bound(quantity.asset_id);
@@ -415,23 +415,29 @@ void exchangeywk::buy_order_fun(uint64_t order_id, contract_asset quantity, int6
     }
 }
 
-void exchangeywk::remove_sell_order(uint64_t order_id) {
-    for (auto it = sellorders.begin(); it != sellorders.end(); it++) {
+void exchangeywkt::remove_sell_order(uint64_t order_id) {
+    for (auto it = sellorders.begin(); it != sellorders.end();) {
         if(it->order_id == order_id) {
             sellorders.erase(it);
+            break;
+        } else {
+            it++;
         }
     }
 }
 
-void exchangeywk::remove_buy_order(uint64_t order_id) {
-    for (auto it = buyorders.begin(); it != buyorders.end(); it++) {
+void exchangeywkt::remove_buy_order(uint64_t order_id) {
+    for (auto it = buyorders.begin(); it != buyorders.end();) {
         if(it->order_id == order_id) {
             buyorders.erase(it);
+            break;
+        } else {
+            it++;
         }
     }
 }
 
-void exchangeywk::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
+void exchangeywkt::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     auto it = orders.find(id);
     graphene_assert(it != orders.end(), "卖单信息不存在");
     graphene_assert(it->user == seller, "无权操作");
@@ -449,7 +455,7 @@ void exchangeywk::cancel_sell_order_fun(uint64_t id, uint64_t seller) {
     remove_sell_order(it->id);
 }
 
-void exchangeywk::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
+void exchangeywkt::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     auto it = orders.find(id);
     graphene_assert(it != orders.end(), "买单信息不存在");
     graphene_assert(it->user == buyer, "无权操作");
@@ -470,7 +476,7 @@ void exchangeywk::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
 
 }
 
-void exchangeywk::insert_sysconfig(uint64_t id, uint64_t value) {
+void exchangeywkt::insert_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
     graphene_assert(it == sysconfigs.end(), "配置信息已存在");
     sysconfigs.emplace(0, [&](auto &a_config) {
@@ -479,9 +485,9 @@ void exchangeywk::insert_sysconfig(uint64_t id, uint64_t value) {
     });
 }
 
-void exchangeywk::update_sysconfig(uint64_t id, uint64_t value) {
+void exchangeywkt::update_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
-    graphene_assert(it != sysconfigs.end(), "配置信息不存在");
+    graphene_assert(it != sysconfigs.end(), "更新时配置信息不存在");
 
     if (id == table_save_count_ID || id == once_delete_count_ID) {
         graphene_assert(it->value < value, "该配置只能增加不能减少");
@@ -495,23 +501,23 @@ void exchangeywk::update_sysconfig(uint64_t id, uint64_t value) {
     });
 }
 
-uint64_t exchangeywk::get_sysconfig(uint64_t id) {
-    auto it = sysconfigs.find(id);
-    graphene_assert(it != sysconfigs.end(), "配置信息不存在");
-    return it->value;
+uint64_t exchangeywkt::get_sysconfig(uint64_t id) {
+    // todo find 为什么不行
+    auto it = sysconfigs.get(id, "查询时配置信息不存在");
+    return it.value;
 }
 
-void exchangeywk::authverify(uint64_t sender) {
+void exchangeywkt::authverify(uint64_t sender) {
     uint64_t profit_account_id = get_sysconfig(profit_account_id_ID);
     graphene_assert(sender == profit_account_id, "越权操作");
 }
 
-void exchangeywk::statusverify() {
+void exchangeywkt::statusverify() {
     uint64_t platform_status = get_sysconfig(platform_status_ID);
     graphene_assert(platform_status == platform_un_lock_status_value, "平台已锁定，暂时不能交易");
 }
 
-void exchangeywk::add_income(contract_asset profit) {
+void exchangeywkt::add_income(contract_asset profit) {
     graphene_assert(profit.amount > 0, "资金操作不能为负数");
     auto income_asset = incomes.find(profit.asset_id);
     if (income_asset == incomes.end()) {
@@ -527,7 +533,7 @@ void exchangeywk::add_income(contract_asset profit) {
     }
 }
 
-void exchangeywk::sub_income(contract_asset profit) {
+void exchangeywkt::sub_income(contract_asset profit) {
     graphene_assert(profit.amount > 0, "资金操作不能为负数");
     auto income_asset = incomes.find(profit.asset_id);
     graphene_assert(income_asset != incomes.end(), "当前收益没有对应得资产");
@@ -539,7 +545,7 @@ void exchangeywk::sub_income(contract_asset profit) {
     
 } 
 
-void exchangeywk::delete_dealorder(uint64_t deletecount) {
+void exchangeywkt::delete_dealorder(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = dealorders.begin(); itr != dealorders.end();) {
         itr = dealorders.erase(itr);
@@ -550,7 +556,7 @@ void exchangeywk::delete_dealorder(uint64_t deletecount) {
     }
 }
 
-uint64_t exchangeywk::insert_profit(int64_t profit_amount) {
+uint64_t exchangeywkt::insert_profit(int64_t profit_amount) {
     uint64_t pk = profits.available_primary_key();
     print("profits pk = ", pk);
     profits.emplace(0, [&](auto &a_profit) {
@@ -566,7 +572,7 @@ uint64_t exchangeywk::insert_profit(int64_t profit_amount) {
 }
 
 // 数据删除
-void exchangeywk::delete_profit(uint64_t deletecount) {
+void exchangeywkt::delete_profit(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = profits.begin(); itr != profits.end();) {
         itr = profits.erase(itr);
@@ -578,7 +584,7 @@ void exchangeywk::delete_profit(uint64_t deletecount) {
 }
 
 // 数据删除
-void exchangeywk::delete_order(uint64_t deletecount) {
+void exchangeywkt::delete_order(uint64_t deletecount) {
     uint64_t delete_count = 0;
     for(auto itr = orders.begin(); itr != orders.end();) {
         itr = orders.erase(itr);
@@ -589,7 +595,7 @@ void exchangeywk::delete_order(uint64_t deletecount) {
     }
 }
 
-void exchangeywk::verifycoinstatus(uint64_t id, uint8_t ordertype) {
+void exchangeywkt::verifycoinstatus(uint64_t id, uint8_t ordertype) {
     uint8_t coinstatus = get_cointype(id);
     if (coinstatus == coin_exchange_on_status) {
         return;
@@ -602,7 +608,7 @@ void exchangeywk::verifycoinstatus(uint64_t id, uint8_t ordertype) {
     }
 }
 
-uint8_t exchangeywk::get_cointype(uint64_t id) {
+uint8_t exchangeywkt::get_cointype(uint64_t id) {
     auto it = cointypes.find(id);
     graphene_assert(it != cointypes.end(), "币种信息不存在");
     return it->value;

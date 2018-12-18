@@ -1,8 +1,8 @@
-#include "exchangeywk_help.cpp"
+#include "exchangeywkt_help.cpp"
 
 using namespace graphene;
 
-void exchangeywk::init(){
+void exchangeywkt::init(){
     auto it = sysconfigs.find(profit_account_id_ID);
     graphene_assert(it == sysconfigs.end(), "配置信息已存在,不能进行init");
     
@@ -14,14 +14,14 @@ void exchangeywk::init(){
     insert_sysconfig(platform_status_ID, platform_un_lock_status_value);
 }
 
-void exchangeywk::updateconfig(uint64_t id, uint64_t value) {
+void exchangeywkt::updateconfig(uint64_t id, uint64_t value) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
     update_sysconfig(id, value);
 }
 
 // 添加支持得资产
-void exchangeywk::addcointype(uint64_t id) {
+void exchangeywkt::addcointype(uint64_t id) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -29,12 +29,12 @@ void exchangeywk::addcointype(uint64_t id) {
     graphene_assert(it == cointypes.end(), "币种信息已存在");
     cointypes.emplace(0, [&](auto &a_coin) {
         a_coin.id = id;
-        a_coin.value = value;
+        a_coin.value = coin_exchange_on_status;
     });
 }
 
 // 配置更新
-void exchangeywk::upcointype(uint64_t id, uint64_t value) {
+void exchangeywkt::upcointype(uint64_t id, uint64_t value) {
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -46,7 +46,18 @@ void exchangeywk::upcointype(uint64_t id, uint64_t value) {
     });
 }
 
-void exchangeywk::pdsellorder(int64_t price) {
+void exchangeywkt::fetchprofit(std::string to_account, contract_asset amount) {
+    uint64_t sender = get_trx_sender();
+    authverify(sender);
+
+    int64_t account_id = get_account_id(to_account.c_str(), to_account.size());
+    graphene_assert(account_id >= 0, "目的账户不存在");
+
+    sub_income(amount);
+    withdraw_asset(_self, account_id, amount.asset_id, amount.amount);
+}
+
+void exchangeywkt::pdsellorder(int64_t price) {
 
     int64_t asset_amount = get_action_asset_amount();
     uint64_t asset_id = get_action_asset_id();
@@ -63,12 +74,12 @@ void exchangeywk::pdsellorder(int64_t price) {
 
 }
 
-void exchangeywk::pdbuyorder(contract_asset quantity, int64_t price) {
+void exchangeywkt::pdbuyorder(contract_asset quantity, int64_t price) {
     int64_t asset_amount = get_action_asset_amount();
     uint64_t asset_id = get_action_asset_id();
-    verifycoinstatus(asset_id, buy_order_type);
+    verifycoinstatus(quantity.asset_id, buy_order_type);
 
-    graphene_assert(asset_amount > quantity.amount * price * (exchange_fee_base_amount/(exchange_fee_base_amount + exchange_fee))/ asset_recision , "支付金额不足以支付交易金额和手续费");
+    graphene_assert(asset_amount * exchange_fee_base_amount/(exchange_fee_base_amount + exchange_fee) > quantity.amount * price / asset_recision , "支付金额不足以支付交易金额和手续费");
     contract_asset pay_amount{asset_amount, asset_id};
 
     graphene_assert(quantity.amount > 0, "挂单金额不能小于或等于零");
@@ -81,7 +92,7 @@ void exchangeywk::pdbuyorder(contract_asset quantity, int64_t price) {
     buy_order_fun(order_id, quantity, price, user);
 }
 
-void exchangeywk::cancelorder(uint8_t type, uint64_t id) {
+void exchangeywkt::cancelorder(uint8_t type, uint64_t id) {
     uint64_t sender = get_trx_sender();
     if (sell_order_type == type) {
         cancel_sell_order_fun(id, sender); 
@@ -90,10 +101,10 @@ void exchangeywk::cancelorder(uint8_t type, uint64_t id) {
     }
 }
 
-void exchangeywk::mpbuy(contract_asset quantity) {
+void exchangeywkt::mpbuy(contract_asset quantity) {
     int64_t asset_amount = get_action_asset_amount();
     uint64_t asset_id = get_action_asset_id();
-    verifycoinstatus(asset_id, buy_order_type);
+    verifycoinstatus(quantity.asset_id, buy_order_type);
 
     contract_asset pay_amount{asset_amount, asset_id};
     uint64_t buyer = get_trx_sender();
@@ -175,7 +186,7 @@ void exchangeywk::mpbuy(contract_asset quantity) {
 
 }
 
-void exchangeywk::mpsell() {
+void exchangeywkt::mpsell() {
     int64_t asset_amount = get_action_asset_amount();
     uint64_t asset_id = get_action_asset_id();
     verifycoinstatus(asset_id, sell_order_type);
@@ -244,7 +255,7 @@ void exchangeywk::mpsell() {
 }
 
 // @abi action
-void exchangeywk::deleteall() {
+void exchangeywkt::deleteall() {
     uint64_t sender = get_trx_sender();
     authverify(sender);
 
@@ -282,14 +293,15 @@ void exchangeywk::deleteall() {
         itr = cointypes.erase(itr);
     }
 
-    // 删除所有得配置
-    for(auto itr = sysconfigs.begin(); itr != sysconfigs.end();) {
-        itr = sysconfigs.erase(itr);
-    }
     uint64_t max_table_size = get_sysconfig(table_save_count_ID) + get_sysconfig(once_delete_count_ID);
     delete_profit(max_table_size);
     delete_dealorder(max_table_size);
     delete_order(max_table_size);
+
+    // 删除所有得配置
+    for(auto itr = sysconfigs.begin(); itr != sysconfigs.end();) {
+        itr = sysconfigs.erase(itr);
+    }
 }
 
-GRAPHENE_ABI(exchangeywk, (init)(updateconfig)(addcointype)(upcointype)(pdsellorder)(pdbuyorder)(cancelorder)(mpbuy)(mpsell)(deleteall))
+GRAPHENE_ABI(exchangeywkt, (init)(updateconfig)(addcointype)(upcointype)(fetchprofit)(pdsellorder)(pdbuyorder)(cancelorder)(mpbuy)(mpsell)(deleteall))
