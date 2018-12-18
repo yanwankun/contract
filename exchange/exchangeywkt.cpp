@@ -3,8 +3,15 @@
 using namespace graphene;
 
 void exchangeywkt::init(){
+    uint64_t sender = get_trx_sender();
+    uint64_t owner_id;
     auto it = sysconfigs.find(profit_account_id_ID);
-    graphene_assert(it == sysconfigs.end(), "配置信息已存在,不能进行init");
+    if (it != sysconfigs.end()) {
+        owner_id = it->value;
+    } else {
+        owner_id = profit_account_id_VALUE;
+    }
+    graphene_assert(owner_id == sender, "只有受益人才可以初始化");
     
     insert_sysconfig(profit_account_id_ID, profit_account_id_VALUE);
     insert_sysconfig(max_match_order_count_ID, max_match_order_count_VALUE);

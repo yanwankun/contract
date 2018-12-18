@@ -478,11 +478,15 @@ void exchangeywkt::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
 
 void exchangeywkt::insert_sysconfig(uint64_t id, uint64_t value) {
     auto it = sysconfigs.find(id);
-    graphene_assert(it == sysconfigs.end(), "配置信息已存在");
-    sysconfigs.emplace(0, [&](auto &a_config) {
-        a_config.id = id;
-        a_config.value = value;
-    });
+    if (it == sysconfigs.end()) {
+        sysconfigs.emplace(0, [&](auto &a_config) {
+            a_config.id = id;
+            a_config.value = value;
+        });
+    } else {
+        update_sysconfig(id, value);
+    }
+    
 }
 
 void exchangeywkt::update_sysconfig(uint64_t id, uint64_t value) {
@@ -502,7 +506,6 @@ void exchangeywkt::update_sysconfig(uint64_t id, uint64_t value) {
 }
 
 uint64_t exchangeywkt::get_sysconfig(uint64_t id) {
-    // todo find 为什么不行
     auto it = sysconfigs.get(id, "查询时配置信息不存在");
     return it.value;
 }

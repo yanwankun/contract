@@ -21,12 +21,14 @@ const uint8_t coin_exchange_sell_lock_status = 2; // 售卖锁定
 const uint8_t coin_exchange_buy_lock_status = 3; // 买锁定
 const uint8_t coin_exchange_down_status = 4; // 下架
 const uint64_t platform_core_asset_id_VALUE = 18; // 平台核心资产id YTSYTS
+
 const uint64_t profit_account_id_ID = 1;
 const uint64_t platform_status_ID = 0;  
 const uint64_t max_match_order_count_ID = 2;
 const uint64_t match_amount_times_ID = 3;
 const uint64_t table_save_count_ID = 4;
 const uint64_t once_delete_count_ID = 5;
+
 const uint64_t match_amount_times_VALUE = 2; //  匹配金额得最大倍数
 const uint64_t profit_account_id_VALUE = 980; //收益账户id 只有这个人才可以获取平台的收益
 const uint64_t max_match_order_count_VALUE = 20; // 一个订单中最多去和该数目个订单做撮合
@@ -54,6 +56,7 @@ class exchangeywkt : public contract
     }
 
     // 初始化
+    //@abi action
     void init();
 
     // 配置更新
