@@ -110,11 +110,12 @@ void exchangeywkt::update_buy_order(uint64_t id, contract_asset quantity) {
     }
 }
 
-uint64_t exchangeywkt::insert_sell_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
+uint64_t exchangeywkt::insert_sell_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller, uint64_t core_asset_id) {
     uint64_t pk = sellorders.available_primary_key();
     print("sell order pk = ", pk);
     sellorders.emplace(0, [&](auto &a_sell_order) {
         a_sell_order.id = pk;
+        a_sell_order.core_asset_id = core_asset_id;
         a_sell_order.price = price;
         a_sell_order.quantity = quantity;
         a_sell_order.order_id = order_id;
@@ -124,11 +125,12 @@ uint64_t exchangeywkt::insert_sell_order(uint64_t order_id, contract_asset quant
     return pk;
 }
 
-uint64_t exchangeywkt::insert_buy_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
+uint64_t exchangeywkt::insert_buy_order(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer, uint64_t core_asset_id) {
     uint64_t pk = buyorders.available_primary_key();
     print("buyer order pk = ", pk);
     buyorders.emplace(0, [&](auto &a_buy_order) {
         a_buy_order.id = pk;
+        a_buy_order.core_asset_id = core_asset_id;
         a_buy_order.price = price;
         a_buy_order.quantity = quantity;
         a_buy_order.order_id = order_id;
@@ -138,13 +140,14 @@ uint64_t exchangeywkt::insert_buy_order(uint64_t order_id, contract_asset quanti
     return pk;
 }
 
-uint64_t exchangeywkt::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder_id, uint64_t price, contract_asset quantity, uint64_t buyer, uint64_t seller, contract_asset fee) {
+uint64_t exchangeywkt::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder_id, uint64_t core_asset_id, uint64_t price, contract_asset quantity, uint64_t buyer, uint64_t seller, contract_asset fee) {
     uint64_t pk = dealorders.available_primary_key();
     print("dealorders pk = ", pk);
     dealorders.emplace(0, [&](auto &a_deal_order) {
         a_deal_order.id = pk;
         a_deal_order.sell_order_id = sellorder_id;
         a_deal_order.buy_order_id = buyorder_id;
+        a_deal_order.core_asset_id = core_asset_id;
         a_deal_order.price = price;
         a_deal_order.quantity = quantity;
         a_deal_order.buyer = buyer;
@@ -161,7 +164,7 @@ uint64_t exchangeywkt::insert_dealorder(uint64_t sellorder_id, uint64_t buyorder
     return pk;
 }
 
-uint64_t exchangeywkt::insert_order(contract_asset pay_amount, contract_asset amount, uint64_t user, uint8_t order_type, int64_t price, uint8_t status) {
+uint64_t exchangeywkt::insert_order(contract_asset pay_amount, contract_asset amount, uint64_t user, uint8_t order_type, uint64_t core_asset_id, int64_t price, uint8_t status) {
     uint64_t pk = orders.available_primary_key();
     print("orders pk = ", pk);
     orders.emplace(0, [&](auto &a_order) {
@@ -170,6 +173,7 @@ uint64_t exchangeywkt::insert_order(contract_asset pay_amount, contract_asset am
         a_order.amount = amount;
         a_order.user = user;
         a_order.order_type = order_type; // 买单和卖单
+        a_order.core_asset_id = core_asset_id;
         a_order.price = price;
         a_order.deal_price = 0;
         if (order_type == sell_order_type) {
@@ -222,8 +226,8 @@ void exchangeywkt::update_order_buy(uint64_t id, contract_asset quantity, contra
         // 有退款 = 付款得钱 - 购买资产得钱 - 手续费
         refund_amount = it->pay_amount.amount - (it->deal_amount + quantity.amount) * deal_price - it->fee_amount - fee.amount;
         if (refund_amount > 0) {
-            contract_asset refundasset{refund_amount, platform_core_asset_id_VALUE};
-            withdraw_asset(_self, it->user, platform_core_asset_id_VALUE, refund_amount);
+            contract_asset refundasset{refund_amount, it->core_asset_id};
+            withdraw_asset(_self, it->user, it->core_asset_id, refund_amount);
             sub_balances(it->user, refundasset);
         }
     }
@@ -236,7 +240,7 @@ void exchangeywkt::update_order_buy(uint64_t id, contract_asset quantity, contra
         m_order.fee_amount += fee.amount;
         if (m_order.un_deal_amount == 0) {
             m_order.status = order_status_end;
-            contract_asset refundasset{refund_amount, platform_core_asset_id_VALUE};
+            contract_asset refundasset{refund_amount, m_order.core_asset_id};
             m_order.refund_amount = refundasset;
         }
     });
@@ -250,8 +254,8 @@ void exchangeywkt::end_order(uint64_t id) {
     if (it->order_type == buy_order_type) {
         int64_t refund_amount = it->pay_amount.amount - it->deal_amount * it->deal_price - it->fee_amount;
         if (refund_amount > 0) {
-            contract_asset refundasset{refund_amount, platform_core_asset_id_VALUE};
-            withdraw_asset(_self, it->user, platform_core_asset_id_VALUE, refund_amount);
+            contract_asset refundasset{refund_amount, it->core_asset_id};
+            withdraw_asset(_self, it->user, it->core_asset_id, refund_amount);
             sub_balances(it->user, refundasset);
             orders.modify(it, 0, [&](auto &m_order) {
                 m_order.status = order_status_end;
@@ -270,19 +274,20 @@ void exchangeywkt::end_order(uint64_t id) {
 }
 
 // 当收到卖单请求时得处理方法
-void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller) {
+void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t seller, uint64_t core_asset_id) {
 
     auto idx = buyorders.template get_index<N(asset)>();
-    auto match_itr_lower = idx.lower_bound(quantity.asset_id);
-    auto match_itr_upper = idx.upper_bound(quantity.asset_id);
+    auto match_itr_lower = idx.lower_bound(core_asset_id);
+    auto match_itr_upper = idx.upper_bound(core_asset_id);
 
     vector<buyorder> match_buy_orders;
     uint64_t match_amount = 0; // 已经匹配得金额数目
     uint64_t count = 0; // 已经匹配得交易数
     uint64_t max_match_count = get_sysconfig(max_match_order_count_ID); // 最大匹配交易条数
     uint64_t max_match_amount = quantity.amount * get_sysconfig(match_amount_times_ID); // 最大匹配交易金额
+
     for ( auto itr = match_itr_lower; itr != match_itr_upper; itr++ ) {
-        if (itr->price >= price) {
+        if (itr->core_asset_id == core_asset_id && itr->price >= price) {
             match_buy_orders.emplace_back(*itr);
             match_amount += itr->quantity.amount;
             count += 1;
@@ -293,7 +298,7 @@ void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, in
     }
 
     if (match_buy_orders.size() == 0) {
-        insert_sell_order(order_id, quantity, price, seller);
+        insert_sell_order(order_id, quantity, price, seller, core_asset_id);
         return;
     }
 
@@ -311,21 +316,21 @@ void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, in
             int64_t deal_amount = trade_quantity.amount * price / asset_recision;
             int64_t fee_amount = deal_amount * exchange_fee / exchange_fee_base_amount;
 
-            contract_asset deal_asset{ deal_amount, platform_core_asset_id_VALUE};
-            contract_asset trade_fee{ fee_amount, platform_core_asset_id_VALUE};
-            contract_asset amount{deal_amount + fee_amount, platform_core_asset_id_VALUE};
+            contract_asset deal_asset{ deal_amount, _buyorder.core_asset_id};
+            contract_asset trade_fee{ fee_amount, _buyorder.core_asset_id};
+            contract_asset amount{deal_amount + fee_amount, _buyorder.core_asset_id};
 
-            insert_dealorder(order_id, _buyorder.order_id, price, deal_asset, _buyorder.buyer, seller, trade_fee);
+            insert_dealorder(order_id, _buyorder.order_id, core_asset_id, price, deal_asset, _buyorder.buyer, seller, trade_fee);
             // 增加收入记录和更新总收入
-            insert_profit(fee_amount * 2);
-            contract_asset profit_fee{ fee_amount * 2, platform_core_asset_id_VALUE};
+            contract_asset profit_fee{ fee_amount * 2, _buyorder.core_asset_id};
+            insert_profit(profit_fee);
             add_income(profit_fee);
             update_order_sell(order_id, trade_quantity, _buyorder.price);
             update_order_buy(_buyorder.order_id, trade_quantity, trade_fee, price);
             update_buy_order(_buyorder.id, _buyorder.quantity - trade_quantity);
 
             // 卖方收入
-            withdraw_asset(_self, seller, platform_core_asset_id_VALUE, deal_amount - fee_amount); // 卖方手续费在这里扣除
+            withdraw_asset(_self, seller, _buyorder.core_asset_id, deal_amount - fee_amount); // 卖方手续费在这里扣除
             // 买方收入
             withdraw_asset(_self, _buyorder.buyer, _buyorder.quantity.asset_id, trade_quantity.amount);
             sub_balances(_buyorder.buyer, amount);
@@ -338,15 +343,15 @@ void exchangeywkt::sell_order_fun(uint64_t order_id, contract_asset quantity, in
     }
 
     if (quantity.amount > 0) {
-        insert_sell_order(order_id, quantity, price, seller);
+        insert_sell_order(order_id, quantity, price, seller, core_asset_id);
     }
 }
 
 // 收到买单得处理
-void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer) {
+void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int64_t price, uint64_t buyer, uint64_t core_asset_id) {
     auto idx = sellorders.template get_index<N(asset)>();
-    auto match_itr_lower = idx.lower_bound(quantity.asset_id);
-    auto match_itr_upper = idx.upper_bound(quantity.asset_id);
+    auto match_itr_lower = idx.lower_bound(core_asset_id);
+    auto match_itr_upper = idx.upper_bound(core_asset_id);
 
     vector<sellorder> match_sell_orders;
     uint64_t match_amount = 0; // 已经匹配得金额数目
@@ -354,7 +359,7 @@ void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int
     uint64_t max_match_count = get_sysconfig(max_match_order_count_ID); // 最大匹配交易条数
     uint64_t max_match_amount = quantity.amount * get_sysconfig(match_amount_times_ID); // 最大匹配交易金额
     for ( auto itr = match_itr_lower; itr != match_itr_upper; itr++ ) {
-        if (itr->price <= price) {
+        if (itr->core_asset_id == core_asset_id && itr->price <= price) {
             match_sell_orders.emplace_back(*itr);
             match_amount += itr->quantity.amount;
             count += 1;
@@ -365,7 +370,7 @@ void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int
     }
 
     if (match_sell_orders.size() == 0) {
-        insert_buy_order(order_id, quantity, price, buyer);
+        insert_buy_order(order_id, quantity, price, buyer, core_asset_id);
         return;
     }
 
@@ -383,22 +388,22 @@ void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int
             int64_t deal_amount = trade_quantity.amount * _sellorder.price / asset_recision;
             int64_t fee_amount = deal_amount * exchange_fee / exchange_fee_base_amount;
 
-            contract_asset deal_asset{ deal_amount, platform_core_asset_id_VALUE};
-            contract_asset trade_fee{ fee_amount, platform_core_asset_id_VALUE};
-            contract_asset amount{deal_amount + fee_amount, platform_core_asset_id_VALUE}; // 买方减少得金额
+            contract_asset deal_asset{ deal_amount, _sellorder.core_asset_id};
+            contract_asset trade_fee{ fee_amount, _sellorder.core_asset_id};
+            contract_asset amount{deal_amount + fee_amount, _sellorder.core_asset_id}; // 买方减少得金额
 
-            insert_dealorder(_sellorder.order_id, order_id, price, deal_asset, buyer, _sellorder.seller, trade_fee);
+            insert_dealorder(_sellorder.order_id, order_id, _sellorder.core_asset_id, price, deal_asset, buyer, _sellorder.seller, trade_fee);
             // 增加收入记录和更新总收入
-            insert_profit(fee_amount * 2);
-            contract_asset profit_fee{ fee_amount * 2, platform_core_asset_id_VALUE};
+            contract_asset profit_fee{ fee_amount * 2, _sellorder.core_asset_id};
             add_income(profit_fee);
+            insert_profit(profit_fee);
 
             update_order_sell(_sellorder.order_id, trade_quantity, _sellorder.price);
             update_order_buy(order_id, trade_quantity, trade_fee, price);
             update_sell_order(_sellorder.order_id, _sellorder.quantity - trade_quantity);
 
             // 卖方收入
-            withdraw_asset(_self, _sellorder.seller, platform_core_asset_id_VALUE, deal_amount - fee_amount); // 卖方手续费在这里扣除
+            withdraw_asset(_self, _sellorder.seller, _sellorder.core_asset_id, deal_amount - fee_amount); // 卖方手续费在这里扣除
             // 买方收入
             withdraw_asset(_self, buyer, quantity.asset_id, trade_quantity.amount);
             sub_balances(buyer, amount);
@@ -411,7 +416,7 @@ void exchangeywkt::buy_order_fun(uint64_t order_id, contract_asset quantity, int
     }
 
     if (quantity.amount > 0) {
-        insert_buy_order(order_id, quantity, price, buyer);
+        insert_buy_order(order_id, quantity, price, buyer, core_asset_id);
     }
 }
 
@@ -463,7 +468,7 @@ void exchangeywkt::cancel_buy_order_fun(uint64_t id, uint64_t buyer) {
     graphene_assert(it->status == order_status_trading, "订单已完成或者已取消");
 
     int64_t refund_amount = it->pay_amount.amount - it->deal_amount * it->deal_price / asset_recision - it->fee_amount;
-    contract_asset amount{refund_amount, platform_core_asset_id_VALUE};
+    contract_asset amount{refund_amount, it->core_asset_id};
 
     sub_balances(buyer, amount);
     withdraw_asset(_self, buyer, amount.asset_id, amount.amount);
@@ -559,7 +564,7 @@ void exchangeywkt::delete_dealorder(uint64_t deletecount) {
     }
 }
 
-uint64_t exchangeywkt::insert_profit(int64_t profit_amount) {
+uint64_t exchangeywkt::insert_profit(contract_asset profit_amount) {
     uint64_t pk = profits.available_primary_key();
     print("profits pk = ", pk);
     profits.emplace(0, [&](auto &a_profit) {
@@ -611,8 +616,23 @@ void exchangeywkt::verifycoinstatus(uint64_t id, uint8_t ordertype) {
     }
 }
 
+void exchangeywkt::verifyptcoinstatus(uint64_t id) {
+    uint8_t coinstatus = get_ptcointype(id);
+    if (coinstatus == pt_coin_exchange_on_status) {
+        return;
+    } else {
+        graphene_assert(false, "此平台资产已暂停支持");
+    }
+}
+
 uint8_t exchangeywkt::get_cointype(uint64_t id) {
     auto it = cointypes.find(id);
     graphene_assert(it != cointypes.end(), "币种信息不存在");
+    return it->value;
+}
+
+uint8_t exchangeywkt::get_ptcointype(uint64_t id) {
+    auto it = ptcointypes.find(id);
+    graphene_assert(it != ptcointypes.end(), "币种信息不存在");
     return it->value;
 }

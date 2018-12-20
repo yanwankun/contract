@@ -9,7 +9,7 @@ deploy_contract exchangeywkt yanwankun-test 0 0 ./contract/exchangeywkt GXC true
 update_contract exchangeywkt yanwankun-test ./contract/exchangeywkt GXC true
 
 #### 合约初始化
-call_contract yanwankun-test exchangeywk null init "{}" GXS true
+call_contract yanwankun-test exchangeywkt null init "{}" GXS true
 get_table_rows exchangeywkt sysconfig 0 100 100
 ``````
 nlocked >>> call_contract yanwankun-test exchangeywkt null init "{}" GXS true
@@ -65,11 +65,11 @@ get_table_rows exchangeywkt sysconfig 0 100 100
 unlocked >>>
 ``````
 #### 添加交易支持得币种
-call_contract yanwankun-test exchangeywkt null addcointype "{\"id\":16}" GXS true
+call_contract yanwankun-test exchangeywkt null setcoin "{\"id\":16, \"value\":1}" GXS true
 get_table_rows exchangeywkt cointype 0 100 100
 ``````
-unlocked >>> call_contract yanwankun-test exchangeywkt null addcointype "{\"id\":16}" GXS true
-call_contract yanwankun-test exchangeywkt null addcointype "{\"id\":16}" GXS true
+unlocked >>> call_contract yanwankun-test exchangeywkt null setcoin "{\"id\":16, \"value\":1}" GXS true
+call_contract yanwankun-test exchangeywkt null setcoin "{\"id\":16, \"value\":1}" GXS true
 {
   "ref_block_num": 2350,
   "ref_block_prefix": 4154432078,
@@ -104,26 +104,63 @@ get_table_rows exchangeywkt cointype 0 100 100
   "more": false
 }
 ``````
-#### 合约调用
-
-call_contract yanwankun-test exchangeyan {"amount":20000000,"asset_id":1.3.18} ptdeposite "{}" GXS true
-
-###### 限价售卖
-call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000}" GXS true
-get_table_rows exchangeywkt sellorder 0 100 100
-
-````````
-####说明 ：以1000000 ywkcoin/1ytsyts 出售20 个ywkcoin
-unlocked >>> call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000}" GXS true
-call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000}" GXS true
+#### 添加平台币种
+call_contract yanwankun-test exchangeywkt null setptcoin "{\"id\":18, \"value\":1}" GXS true
+``````
+unlocked >>> call_contract yanwankun-test exchangeywkt null setptcoin "{\"id\":18, \"value\":1}" GXS true
+call_contract yanwankun-test exchangeywkt null setptcoin "{\"id\":18, \"value\":1}" GXS true
 {
-  "ref_block_num": 2383,
-  "ref_block_prefix": 579795396,
-  "expiration": "2018-12-18T11:45:30",
+  "ref_block_num": 54726,
+  "ref_block_prefix": 3879375734,
+  "expiration": "2018-12-20T11:04:18",
   "operations": [[
       75,{
         "fee": {
-          "amount": 20471,
+          "amount": 2463,
+          "asset_id": "1.3.1"
+        },
+        "account": "1.2.980",
+        "contract_id": "1.2.1203",
+        "method_name": "setptcoin",
+        "data": "120000000000000001",
+        "extensions": []
+      }
+    ]
+  ],
+  "extensions": [],
+  "signatures": [
+    "2057d210f33bdbc557d02c8b9dfcfc555a1ccb4836796e49ce0f3c5209ecb20d484a286527a0c5630633b1c40b274adb89ba203fa15e792b3720c37ba3ec9eeafc"
+  ]
+}
+unlocked >>> get_table_rows exchangeywkt ptcointype 0 100 100
+get_table_rows exchangeywkt ptcointype 0 100 100
+{
+  "rows": [{
+      "id": 18,
+      "value": 1
+    }
+  ],
+  "more": false
+}
+``````
+#### 合约调用
+
+###### 限价售卖
+call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000, \"core_asset_id\":18}" GXS true
+get_table_rows exchangeywkt order 0 100 100
+
+````````
+以1000000 ywkcoin/1ytsyts 出售20 个ywkcoin
+unlocked >>> call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000, \"core_asset_id\":18}" GXS true
+call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} pdsellorder "{\"price\": 1000000, \"core_asset_id\":18}" GXS true
+{
+  "ref_block_num": 54777,
+  "ref_block_prefix": 2853840896,
+  "expiration": "2018-12-20T11:07:06",
+  "operations": [[
+      75,{
+        "fee": {
+          "amount": 20783,
           "asset_id": "1.3.1"
         },
         "account": "1.2.980",
@@ -133,42 +170,18 @@ call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.16} p
           "asset_id": "1.3.16"
         },
         "method_name": "pdsellorder",
-        "data": "40420f0000000000",
+        "data": "40420f00000000001200000000000000",
         "extensions": []
       }
     ]
   ],
   "extensions": [],
   "signatures": [
-    "1f43d73bf8a6572833854a0af1c85b63e4488a6e38b6937f4cef216d5097db242a63e5040efd1e2d494170bfb264452eaa3bb691336be4f564de311ed652932b0c"
+    "1f273e2c5c369098eaee7b5eb0b4640cd072f299a66689ff08c4055f7b09f7a7ae2eb1068eaa9ff168d73b57d520d1d93e0605ea7a12ea7bbd8a859b19fd29fd96"
   ]
 }
-####　会生成一个限价卖单
-unlocked >>> get_table_rows exchangeywkt sellorder 0 100 100
-get_table_rows exchangeywkt sellorder 0 100 100
-{
-  "rows": [{
-      "id": 0,
-      "price": 1000000,
-      "quantity": {
-        "amount": 2000000,
-        "asset_id": 16
-      },
-      "order_id": 0,
-      "seller": 980,
-      "order_time": 1545133500
-    }
-  ],
-  "more": false
-}
-unlocked >>>
-###### 合约账户会有一笔收入
-unlocked >>> list_account_balances exchangeywkt 
-list_account_balances exchangeywkt 
-20 WKYCOIN
-
-###### 出售着账户会有余额记录
-unlocked >>> get_table_rows exchangeywkt account 980 20 20
+出售着账户会有余额记录
+nlocked >>> get_table_rows exchangeywkt account 980 20 20
 get_table_rows exchangeywkt account 980 20 20
 {
   "rows": [{
@@ -182,11 +195,67 @@ get_table_rows exchangeywkt account 980 20 20
   ],
   "more": false
 }
+生成得挂单
+unlocked >>> get_table_rows exchangeywkt order 0 100 100
+get_table_rows exchangeywkt order 0 100 100
+{
+  "rows": [{
+      "id": 0,
+      "pay_amount": {
+        "amount": 2000000,
+        "asset_id": 16
+      },
+      "amount": {
+        "amount": 2000000,
+        "asset_id": 16
+      },
+      "user": 980,
+      "order_type": 2,
+      "core_asset_id": 18,
+      "price": 1000000,
+      "deal_price": 1000000,
+      "deal_amount": 0,
+      "un_deal_amount": 2000000,
+      "status": 1,
+      "fee_amount": 0,
+      "refund_amount": {
+        "amount": 0,
+        "asset_id": 0
+      },
+      "order_time": 1545303996
+    }
+  ],
+  "more": false
+}
+会生成一个限价卖单
+unlocked >>> get_table_rows exchangeywkt sellorder 0 100 100
+get_table_rows exchangeywkt sellorder 0 100 100
+{
+  "rows": [{
+      "id": 0,
+      "core_asset_id": 18,
+      "price": 1000000,
+      "quantity": {
+        "amount": 2000000,
+        "asset_id": 16
+      },
+      "order_id": 0,
+      "seller": 980,
+      "order_time": 1545303996
+    }
+  ],
+  "more": false
+} 
+合约账户会有一笔收入
+unlocked >>> list_account_balances exchangeywkt
+list_account_balances exchangeywkt
+20 WKYCOIN
+0 YTSYTS
 ````````
 
 ###### 限价购买
 
-call_contract yanwankun-test exchangeywkt {"amount":20050000,"asset_id":1.3.18} pdbuyorder "{ \"quantity\": {\"asset_id\": 16, \"amount\":2500000},\"price\": 800000}" GXS true
+call_contract yanwankun-test exchangeywkt {"amount":22050000,"asset_id":1.3.18} pdbuyorder "{ \"quantity\": {\"asset_id\": 16, \"amount\":2500000},\"price\": 800000}" GXS true
 ```````
 #### 说明以 0.0009 ywkcoin/1ytsyts 购买 25.00000 个ywkcoin
 unlocked >>> call_contract yanwankun-test exchangeywkt {"amount":2000000,"asset_id":1.3.18} pdbuyorder "{ \"quantity\": {\"asset_id\": 16, \"amount\":2500000},\"price\": 9}" GXS true
