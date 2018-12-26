@@ -87,8 +87,6 @@ namespace eosio {
             invest(from, quantity);
         } else if (res[0].compare("pledge") == 0) {
             pledge(from, quantity);  
-        } else if (res[0].compare("updatepool") == 0) {
-            updatepool(quantity, 100000, 1000000);
         }
     }
 
@@ -113,9 +111,6 @@ namespace eosio {
         if (players.find(sender.value) == players.end()) {
             players.emplace( _self, [&]( auto& a_player ) {
                 a_player.player = sender;
-                // a_player.betcount = 0;
-                // a_player.wincount = 0;
-                // a_player.losscount = 0;
             });
         }
         auto p = players.find(sender.value);
@@ -157,37 +152,6 @@ namespace eosio {
             o.pool += quantity;
             o.investtotalpercent += percentNum;
         });
-    }
-
-    void myeosgdicek::updatepool(asset assetInfo, uint64_t minBet, uint64_t minBank) {
-        require_auth( _self );
-        
-        bool exist = false;
-        for (auto it = prizepools.begin(); it != prizepools.end(); it++) {
-            if (it->pool.symbol == assetInfo.symbol) {
-                exist = true;
-            }
-        }
-
-        if (!exist) {
-            assetInfo.amount = 1;
-            prizepools.emplace(_self, [&](auto &o) {
-                o.id = assetInfo.symbol.raw();
-                o.pool = assetInfo;
-                o.totalbet = 0;
-                o.betcount = 0;
-                o.wincount = 0;
-                o.minbet = minBet;
-                o.minbank = minBank;
-            });
-        } else {
-            auto pp = prizepools.find(assetInfo.symbol.raw());
-            eosio_assert(pp != prizepools.end(), "no pool for that asset");
-            prizepools.modify(pp, _self, [&](auto &o) {
-                o.minbet = minBet;
-                o.minbank = minBank;
-            });
-        }
     }
 
     /**
@@ -285,8 +249,8 @@ namespace eosio {
 
     void myeosgdicek::win_asset_pay(name winner, asset win_asset) {
         INLINE_ACTION_SENDER(eosio::token, transfer)(
-            token_account, { {name("myeosgdicek"), active_permission} },
-            { name("myeosgdicek"), winner, win_asset, string("this is a test") }
+            token_account, { {contract_account_name, active_permission} },
+            { contract_account_name, winner, win_asset, string("this is a test") }
         );
     }
 
@@ -294,16 +258,16 @@ namespace eosio {
         if (EOS_ASSET_ID == bet_asset.symbol) {
             int64_t reward_amount = bet_asset.amount * REWARD_RATE / 100;
             asset reward_asset{reward_amount, GDC_ASSET_ID};
-            string memo = "play myeosgdicek reward ";
+            string memo = "play game reward ";
             memo.append(to_string(reward_amount)).append(", I wish you a happy game and win the victory.");
-            withdraw_asset(to, reward_asset, memo);
+            withdraw_asset(token_account, to, reward_asset, memo);
         }
     }
 
-    void myeosgdicek::withdraw_asset(name to, asset quantity, string memo) {
+    void myeosgdicek::withdraw_asset(name token_name, name to, asset quantity, string memo) {
         INLINE_ACTION_SENDER(eosio::token, transfer)(
-            token_account, { {name("myeosgdicek"), active_permission} },
-            { name("myeosgdicek"), to, quantity, memo }
+            token_name, { {contract_account_name, active_permission} },
+            { contract_account_name, to, quantity, memo }
         );
     }
 

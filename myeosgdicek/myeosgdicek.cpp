@@ -16,16 +16,45 @@ namespace eosio {
         insertseed(hash);
     }
 
-    ACTION myeosgdicek::divest(name sender, uint64_t poolid, int64_t amount) {// 撤资
+    ACTION myeosgdicek::updatepool(asset assetInfo, uint64_t minBet, uint64_t minBank) {
+        require_auth( _self );
+        
+        bool exist = false;
+        for (auto it = prizepools.begin(); it != prizepools.end(); it++) {
+            if (it->pool.symbol == assetInfo.symbol) {
+                exist = true;
+            }
+        }
+
+        if (!exist) {
+            assetInfo.amount = 1;
+            prizepools.emplace(_self, [&](auto &o) {
+                o.id = assetInfo.symbol.raw();
+                o.pool = assetInfo;
+                o.totalbet = 0;
+                o.betcount = 0;
+                o.wincount = 0;
+                o.minbet = minBet;
+                o.minbank = minBank;
+            });
+        } else {
+            auto pp = prizepools.find(assetInfo.symbol.raw());
+            eosio_assert(pp != prizepools.end(), "no pool for that asset");
+            prizepools.modify(pp, _self, [&](auto &o) {
+                o.minbet = minBet;
+                o.minbank = minBank;
+            });
+        }
+    }
+
+    ACTION myeosgdicek::divest(name sender, asset assetInfo) {// 撤资
         eosio_assert(!gamePaused(), "game has been paused");
-        eosio_assert(amount > 0, "invalid withdraw amount");
+        eosio_assert(assetInfo.amount > 0, "invalid withdraw amount");
         
         auto p = players.find(sender.value);
         eosio_assert(p != players.end(), "player has no asset in this contract");
-        auto pp = prizepools.find(poolid);
+        auto pp = prizepools.find(assetInfo.symbol.raw());
         eosio_assert(pp != prizepools.end(), "no pool for that asset");
-
-        asset assetInfo{amount, pp->pool.symbol};
 
         int assetIndex = 0;
         for (auto playerAsset = p->investpercent.begin(); playerAsset != p->investpercent.end(); ++playerAsset) {
@@ -51,29 +80,26 @@ namespace eosio {
                     o.pool -= assetInfo;
                     o.investtotalpercent -= percentNum;
                 });
-                withdraw_asset(sender, assetInfo, "");
+                withdraw_asset(token_account, sender, assetInfo, "");
                 break;
             }
             assetIndex++;
         }
     }
 
-    ACTION myeosgdicek::redeem(name sender, int64_t amount) {
+    ACTION myeosgdicek::redeem(name sender, int64_t amount) { // 赎回GDC
         require_auth( _self );
+        
         auto p = players.find(sender.value);
         eosio_assert(p != players.end(), "no user found");
         eosio_assert(p->gdcamount >= amount, "no enough Pledged GDC.");
         players.modify(p, _self, [&](auto &o) {
             o.gdcamount -= amount;
         });
-        // auto v = vardics.find(GDC_TOTAL_ID);
-        // vardics.modify(v, _self, [&](auto &g) {
-        //     g.value -= amount;
-        // });
         decreaseVar(GDC_TOTAL_ID, amount);
 
         asset redeemAsset{amount, GDC_ASSET_ID};
-        withdraw_asset(p->player, redeemAsset, "redeem gdc");
+        withdraw_asset(token_account, p->player, redeemAsset, "redeem gdc");
     }
 
     /**

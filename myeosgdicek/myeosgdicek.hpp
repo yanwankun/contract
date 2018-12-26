@@ -54,7 +54,6 @@ namespace eosio {
             string        memo;
          };
 
-        // @abi table player i64
         TABLE player {
             name player;
             uint64_t betcount;
@@ -93,8 +92,7 @@ namespace eosio {
             }
         };
        
-        
-        // @abi table bet i64
+
         TABLE bet {
             uint64_t id;
             name player;
@@ -116,17 +114,13 @@ namespace eosio {
             uint64_t id;
             uint16_t value;
             uint64_t primary_key() const {return id;}
-            // EOSLIB_SERIALIZE(vardic, (id)(value))
         };
 
-        // @abi table seed i64
         TABLE seed {
             uint64_t id;
             capi_checksum256 seed_hash;
             capi_checksum256 seed_value;
-            // uint64_t expired;
             uint64_t primary_key() const {return id;}
-            // EOSLIB_SERIALIZE(serverseed, (id)(seed_hash)(seed_value))
         };
 
         typedef multi_index<name("player"), player> player_index;
@@ -148,13 +142,14 @@ namespace eosio {
         ACTION lottery(uint64_t bet_id);
         ACTION deleteall();
 
-        ACTION divest(name sender, uint64_t poolid, int64_t amount);
-        // ACTION updatestatus(uint64_t status);
+        ACTION divest(name sender, asset assetInfo);
         ACTION redeem(name sender, int64_t amount);
+        ACTION updatepool(asset assetInfo, uint64_t minBet, uint64_t minBank);
 
-        static constexpr eosio::name token_account{"eosio.token"_n};
-        static constexpr eosio::name active_permission{"active"_n};
-        // static constexpr eosio::name myeosgdicek_account{"myeosgdicek_account"_n};
+        static constexpr name token_account{"eosio.token"_n};
+        static constexpr name myeostoken_account{"myeostoken"_n};
+        static constexpr name active_permission{"active"_n};
+        static constexpr name contract_account_name{"myeosgdicek"_n};
 
         void transfer(name from, name to, asset quantity, string memo);
         using init_action = action_wrapper<"init"_n, &myeosgdicek::init>;
@@ -163,7 +158,7 @@ namespace eosio {
         using upseed_action = action_wrapper<"upseed"_n, &myeosgdicek::upseed>;
         using deleteall_action = action_wrapper<"deleteall"_n, &myeosgdicek::deleteall>;
 
-        // using updatepool_action = action_wrapper<"updatepool"_n, &myeosgdicek::updatepool>;
+        using updatepool_action = action_wrapper<"updatepool"_n, &myeosgdicek::updatepool>;
         using divest_action = action_wrapper<"divest"_n, &myeosgdicek::divest>;
         using redeem_action = action_wrapper<"redeem"_n, &myeosgdicek::redeem>;
 
@@ -175,7 +170,7 @@ namespace eosio {
         uint64_t findlastseedid();
         void bet(name sender, asset bet_asset, int16_t bet_num, bool is_big, capi_checksum256 client_seed);
         void win_asset_pay(name winner, asset win_asset);
-        void withdraw_asset(name to, asset quantity, string memo);
+        void withdraw_asset(name token_name, name to, asset quantity, string memo);
         bool gamePaused();
         void invest(name sender, asset quantity);
         uint64_t getval(uint64_t id);
@@ -184,7 +179,6 @@ namespace eosio {
         void increaseVar(uint64_t id, int64_t delta);
         void decreaseVar(uint64_t id, int64_t delta);
         void pledge(name sender, asset quantity);
-        void updatepool(asset assetInfo, uint64_t minBet, uint64_t minBank);
 
         player_index        players;
         bet_index           bets;
@@ -208,7 +202,7 @@ namespace eosio {
             {
                 switch (action)
                 {
-                    EOSIO_DISPATCH_HELPER(myeosgdicek, (init)(lottery)(upconfig)(upseed)(deleteall)(divest)(redeem));// updatestatus pledge updatepool
+                    EOSIO_DISPATCH_HELPER(myeosgdicek, (init)(lottery)(upconfig)(upseed)(deleteall)(updatepool)(divest)(redeem));// updatestatus pledge 
                     default:
                         eosio_assert(false, "it is not my action.");
                         break;
