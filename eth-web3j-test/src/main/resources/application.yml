@@ -1,0 +1,21 @@
+server:
+  port: 8088
+  error:
+    path: /custom/error
+#spring:
+#  mail:
+#    default-encoding: UTF-8
+#    host: smtp.exmail.qq.com
+#    #    支持的协议：比如163 支持 smtp,pop3,imap
+#    protocol: smtp
+#    #    支持协议的端口，包括SSL和非SSL
+#    port: 465
+#    username: it@ppset.io
+#    password: Yuyanjia123
+#
+#    test-connection: false
+#    properties:
+#      mail:
+#        smtp:
+#          #        必须密码登录
+#          auth: true
